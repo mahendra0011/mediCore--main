@@ -6,6 +6,8 @@ const patientSchema = new mongoose.Schema({
   gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
   disease: { type: String, default: '' },
   doctor: { type: String, default: '' },
+  doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   phone: { type: String, default: '' },
   email: { type: String, default: '' },
   address: { type: String, default: '' },
