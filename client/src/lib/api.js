@@ -517,18 +517,21 @@ export const api = {
   deletePatient: (id)      => dispatch(() => mock.deletePatient(id),                   `/patients/${id}`,    { method:'DELETE' }),
 
   getAppointments:(p={})   => dispatch(() => mock.getAppointments(p),                  '/appointments?'      + new URLSearchParams(p)),
+  getMyAppointments:(p={}) => dispatch(() => mock.getAppointments(p),                  '/appointments/my-appointments?' + new URLSearchParams(p)),
   createAppointment:(body) => dispatch(() => mock.createAppointment(body),             '/appointments',      { method:'POST',   body: JSON.stringify(body) }),
   updateAppointment:(id,b) => dispatch(() => mock.updateAppointment(id,b),             `/appointments/${id}`,{ method:'PUT',    body: JSON.stringify(b) }),
   deleteAppointment:(id)   => dispatch(() => mock.deleteAppointment(id),               `/appointments/${id}`,{ method:'DELETE' }),
 
   getRecords:    (p={})    => dispatch(() => mock.getRecords(p),                       '/records?'           + new URLSearchParams(p)),
+  getPatientRecords:(pid)  => dispatch(() => mock.getRecords(p),                       `/records/patient/${pid}`),
   createRecord:  (body)    => dispatch(() => mock.createRecord(body),                  '/records',           { method:'POST',   body: JSON.stringify(body) }),
   deleteRecord:  (id)      => dispatch(() => mock.deleteRecord(id),                    `/records/${id}`,     { method:'DELETE' }),
 
   getBilling:    (p={})    => dispatch(() => mock.getBilling(p),                       '/billing?'           + new URLSearchParams(p)),
   createBill:    (body)    => dispatch(() => mock.createBill(body),                    '/billing',           { method:'POST',   body: JSON.stringify(body) }),
-  updateBill:    (id,body) => dispatch(() => mock.updateBill(id,body),                 `/billing/${id}`,     { method:'PUT',    body: JSON.stringify(body) }),
-  deleteBill:    (id)      => dispatch(() => mock.deleteBill(id),                      `/billing/${id}`,     { method:'DELETE' }),
+  payBill:       (id,body) => dispatch(() => mock.updateBill(id,body),                  `/billing/${id}/pay`,{ method:'POST',   body: JSON.stringify(body) }),
+  updateBill:    (id,body) => dispatch(() => mock.updateBill(id,body),                 `/billing/${id}`,    { method:'PUT',    body: JSON.stringify(body) }),
+  deleteBill:    (id)      => dispatch(() => mock.deleteBill(id),                      `/billing/${id}`,    { method:'DELETE' }),
 
   getReviews:    (p={})    => dispatch(() => mock.getReviews(p),                       '/reviews?'           + new URLSearchParams(p)),
   createReview:  (body)    => dispatch(() => mock.createReview(body),                  '/reviews',           { method:'POST',   body: JSON.stringify(body) }),

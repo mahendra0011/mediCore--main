@@ -2,15 +2,17 @@ import mongoose from 'mongoose';
 
 const recordSchema = new mongoose.Schema({
   patient: { type: String, required: true },
-  patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+  patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   doctor: { type: String, required: true },
   doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+  appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' },
   date: { type: String, required: true },
   diagnosis: { type: String, default: '' },
   prescription: { type: String, default: '' },
   type: { type: String, enum: ['Diagnosis', 'Prescription', 'Lab Report', 'Imaging', 'prescription', 'lab_report', 'discharge_summary'], default: 'Diagnosis' },
   notes: { type: String, default: '' },
   data: { type: Object, default: {} },
+  attachments: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
 });
 
