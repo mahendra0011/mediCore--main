@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig({
+  base: "/",
   server: {
     host: "::",
     port: 8080,
@@ -16,5 +17,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: false,
   },
 });
