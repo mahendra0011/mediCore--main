@@ -102,7 +102,7 @@ In Render dashboard for your service, go to **"Environment"** tab and add:
 3. Configure:
    - **Name**: `medicore-client`
    - **Build Command**: `cd client && npm install && npm run build`
-   - **Publish Directory**: `client/dist`
+   - **Publish Directory**: `dist`
 4. Add environment variable:
    - `VITE_API_URL`: `https://medicore-server.onrender.com/api`
 5. Click **"Create Static Site"**

@@ -1,9 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  base: "/",
+  base: "./",
   server: {
     host: "::",
     port: 8080,
@@ -19,7 +22,8 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
   build: {
-    outDir: "dist",
+    outDir: path.resolve(__dirname, "dist"),
+    emptyOutDir: true,
     sourcemap: false,
   },
 });
