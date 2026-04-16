@@ -39,15 +39,17 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-// Auth check helper
+// Auth check helper - simple version
 const optionalAuth = (req, res, next) => {
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer ')) {
     try {
-      const jwt = await import('jsonwebtoken');
+      const jwt = require('jsonwebtoken');
       const token = auth.split(' ')[1];
-      req.user = jwt.default.verify(token, process.env.JWT_SECRET || 'secret');
-    } catch {}
+      req.user = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    } catch (e) {
+      console.log('Auth optional - no valid token');
+    }
   }
   next();
 };
