@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Search, Calendar, CheckCircle, AlertCircle, XCircle, IndianRupee } from 'lucide-react';
+import { CreditCard, Search, Calendar, CheckCircle, AlertCircle, XCircle, IndianRupee, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const statusColors = { Paid: 'bg-success/10 text-success', Pending: 'bg-warning/10 text-warning', Overdue: 'bg-destructive/10 text-destructive', Partial: 'bg-info/10 text-info' };
 
 export default function PatientBilling() {
@@ -17,14 +19,37 @@ export default function PatientBilling() {
   const loadBilling = async () => {
     setLoading(true);
     try {
-      const data = await api.getBilling({ patient: user?.name, search });
-      setBills(data.bills);
-      setSummary(data.summary);
-    } catch (e) { console.error(e); }
+      const res = await fetch(`${API_URL}/billing`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      if (data.bills) {
+        setBills(data.bills);
+        setSummary(data.summary || { total: 0, paid: 0 });
+      }
+    } catch (error) {
+      console.error('Error fetching billing:', error);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { loadBilling(); }, [search]);
+  const handlePayBill = async (billId) => {
+    try {
+      await fetch(`${API_URL}/billing/${billId}/pay`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ paymentMethod: 'card' })
+      });
+      loadBilling();
+    } catch (error) {
+      console.error('Error paying bill:', error);
+    }
+  };
+
+  useEffect(() => { loadBilling(); }, []);
 
   return (
     <div className="space-y-6">
@@ -87,6 +112,9 @@ export default function PatientBilling() {
                   <p className="text-xs text-muted-foreground">Amount</p>
                   <p className="font-heading text-lg font-bold text-foreground">${bill.amount}</p>
                 </div>
+                {bill.status !== 'Paid' && (
+                  <Button size="sm" onClick={() => handlePayBill(bill._id)}>Pay Now</Button>
+                )}
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Paid</p>
                   <p className="font-heading text-lg font-bold text-success">${bill.paid}</p>

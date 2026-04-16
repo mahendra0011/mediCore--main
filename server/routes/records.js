@@ -1,12 +1,19 @@
 import express from 'express';
 import Record from '../models/Record.js';
 import Notification from '../models/Notification.js';
+import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'records') => {
   await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
+};
+
+const findPatientByName = async (name) => {
+  if (!name) return null;
+  const patient = await User.findOne({ name: new RegExp(name, 'i'), role: 'patient' });
+  return patient;
 };
 
 router.get('/', protect, async (req, res) => {
@@ -51,15 +58,21 @@ router.post('/', protect, async (req, res) => {
     
     let doctorName = req.user.name;
     let doctorId = req.user._id;
+    let finalPatientId = patientId || req.user._id;
     
     if (req.user.role === 'patient') {
       doctorName = req.body.doctor || '';
       doctorId = req.body.doctorId || null;
     }
     
+    if (!finalPatientId && patient) {
+      const patientUser = await findPatientByName(patient);
+      if (patientUser) finalPatientId = patientUser._id;
+    }
+    
     const record = await Record.create({
       patient: patient || req.user.name,
-      patientId: patientId || req.user._id,
+      patientId: finalPatientId,
       doctor: doctorName,
       doctorId: doctorId,
       appointmentId: appointmentId || null,
@@ -74,7 +87,9 @@ router.post('/', protect, async (req, res) => {
     
     await record.populate('doctorId', 'name specialization');
     
-    await createNotification(patientId || req.user._id, 'New Medical Record', `A new ${type || 'record'} has been added to your medical history`, 'records');
+    if (finalPatientId) {
+      await createNotification(finalPatientId, 'New Medical Record', `Dr. ${doctorName} has generated your ${type || 'record'}`, 'records');
+    }
     
     res.status(201).json(record);
   } catch (err) { res.status(400).json({ message: err.message }); }

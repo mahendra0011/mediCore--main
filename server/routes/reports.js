@@ -29,6 +29,9 @@ import Doctor from '../models/Doctor.js';
 import Billing from '../models/Billing.js';
 import Appointment from '../models/Appointment.js';
 import Record from '../models/Record.js';
+import User from '../models/User.js';
+import Notification from '../models/Notification.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 const upload = multer({ 
@@ -36,20 +39,45 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
+const findPatientByName = async (name) => {
+  if (!name) return null;
+  const patient = await User.findOne({ name: new RegExp(name, 'i'), role: 'patient' });
+  return patient;
+};
+
+const createNotification = async (userId, title, message, type = 'records') => {
+  if (userId) {
+    await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
+  }
+};
+
 router.post('/generate-prescription', async (req, res) => {
   try {
     const pdfBuffer = await generatePrescriptionPDF(req.body);
     
-    if (req.body.patient && req.body.doctor) {
-      await Record.create({
-        patient: req.body.patient.name || 'Unknown',
-        doctor: req.body.doctor.name || 'Unknown',
+    const patientName = req.body.patient?.name || req.body.patient;
+    const doctorName = req.body.doctor?.name || req.body.doctor;
+    
+    let patientUser = null;
+    if (patientName) {
+      patientUser = await findPatientByName(patientName);
+    }
+    
+    if (patientName && doctorName) {
+      const record = await Record.create({
+        patient: patientName,
+        patientId: patientUser?._id || null,
+        doctor: doctorName,
         date: new Date().toLocaleDateString(),
         diagnosis: req.body.diagnosis || '',
         type: 'prescription',
         data: req.body,
         createdAt: new Date()
       });
+      
+      if (patientUser?._id) {
+        await createNotification(patientUser._id, 'New Prescription', `Dr. ${doctorName} has generated your prescription`, 'records');
+      }
     }
     
     res.setHeader('Content-Type', 'application/pdf');
@@ -64,16 +92,29 @@ router.post('/generate-lab-report', async (req, res) => {
   try {
     const pdfBuffer = await generateLabReportPDF(req.body);
     
-    if (req.body.patient && req.body.doctor) {
-      await Record.create({
-        patient: req.body.patient.name || 'Unknown',
-        doctor: req.body.doctor.name || 'Unknown',
+    const patientName = req.body.patient?.name || req.body.patient;
+    const doctorName = req.body.doctor?.name || req.body.doctor;
+    
+    let patientUser = null;
+    if (patientName) {
+      patientUser = await findPatientByName(patientName);
+    }
+    
+    if (patientName && doctorName) {
+      const record = await Record.create({
+        patient: patientName,
+        patientId: patientUser?._id || null,
+        doctor: doctorName,
         date: req.body.testDate || new Date().toLocaleDateString(),
         diagnosis: 'Lab Report',
         type: 'lab_report',
         data: req.body,
         createdAt: new Date()
       });
+      
+      if (patientUser?._id) {
+        await createNotification(patientUser._id, 'Lab Report Ready', `Dr. ${doctorName} has generated your lab report`, 'records');
+      }
     }
     
     res.setHeader('Content-Type', 'application/pdf');
@@ -88,16 +129,29 @@ router.post('/generate-discharge-summary', async (req, res) => {
   try {
     const pdfBuffer = await generateDischargeSummaryPDF(req.body);
     
-    if (req.body.patient && req.body.doctor) {
-      await Record.create({
-        patient: req.body.patient.name || 'Unknown',
-        doctor: req.body.doctor.name || 'Unknown',
+    const patientName = req.body.patient?.name || req.body.patient;
+    const doctorName = req.body.doctor?.name || req.body.doctor;
+    
+    let patientUser = null;
+    if (patientName) {
+      patientUser = await findPatientByName(patientName);
+    }
+    
+    if (patientName && doctorName) {
+      const record = await Record.create({
+        patient: patientName,
+        patientId: patientUser?._id || null,
+        doctor: doctorName,
         date: req.body.dischargeDate || new Date().toLocaleDateString(),
         diagnosis: req.body.diagnosis || 'Discharge Summary',
         type: 'discharge_summary',
         data: req.body,
         createdAt: new Date()
       });
+      
+      if (patientUser?._id) {
+        await createNotification(patientUser._id, 'Discharge Summary', `Dr. ${doctorName} has generated your discharge summary`, 'records');
+      }
     }
     
     res.setHeader('Content-Type', 'application/pdf');
@@ -168,7 +222,7 @@ router.post('/sms/otp', async (req, res) => {
   }
 });
 
-router.post('/upload/image', upload.single('file'), async (req, res) => {
+router.post('/upload/image', protect, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -180,32 +234,128 @@ router.post('/upload/image', upload.single('file'), async (req, res) => {
     }
     
     const result = await processMedicalFile(req.file, 'image');
+    
+    if (req.user.role === 'patient') {
+      await Record.create({
+        patient: req.user.name,
+        patientId: req.user._id,
+        doctor: 'Self Upload',
+        diagnosis: 'Uploaded medical image',
+        type: 'prescription',
+        notes: `File: ${result.filename}`,
+        data: {
+          patient: { name: req.user.name },
+          doctor: { name: 'Self Upload' },
+          uploadedFile: {
+            filename: result.filename,
+            filepath: result.filepath,
+            size: result.size,
+            type: 'image'
+          },
+          date: new Date().toISOString().split('T')[0],
+        },
+      });
+      
+      await Notification.create({
+        title: 'File Uploaded',
+        message: `Your medical image has been uploaded successfully`,
+        type: 'records',
+        read: false,
+        userId: req.user._id,
+        date: new Date().toISOString().split('T')[0],
+      });
+    }
+    
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/upload/xray', upload.single('file'), async (req, res) => {
+router.post('/upload/xray', protect, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
     const result = await processMedicalFile(req.file, 'xray');
+    
+    if (req.user.role === 'patient') {
+      await Record.create({
+        patient: req.user.name,
+        patientId: req.user._id,
+        doctor: 'Self Upload',
+        diagnosis: 'Uploaded X-ray',
+        type: 'lab_report',
+        notes: `File: ${result.filename}`,
+        data: {
+          patient: { name: req.user.name },
+          doctor: { name: 'Self Upload' },
+          uploadedFile: {
+            filename: result.filename,
+            filepath: result.filepath,
+            size: result.size,
+            type: 'xray'
+          },
+          date: new Date().toISOString().split('T')[0],
+        },
+      });
+      
+      await Notification.create({
+        title: 'X-Ray Uploaded',
+        message: `Your X-ray has been uploaded successfully`,
+        type: 'records',
+        read: false,
+        userId: req.user._id,
+        date: new Date().toISOString().split('T')[0],
+      });
+    }
+    
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/upload/document', upload.single('file'), async (req, res) => {
+router.post('/upload/document', protect, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
     const result = await processMedicalFile(req.file, 'document');
+    
+    if (req.user.role === 'patient') {
+      await Record.create({
+        patient: req.user.name,
+        patientId: req.user._id,
+        doctor: 'Self Upload',
+        diagnosis: 'Uploaded document',
+        type: 'discharge_summary',
+        notes: `File: ${result.filename}`,
+        data: {
+          patient: { name: req.user.name },
+          doctor: { name: 'Self Upload' },
+          uploadedFile: {
+            filename: result.filename,
+            filepath: result.filepath,
+            size: result.size,
+            type: 'document'
+          },
+          date: new Date().toISOString().split('T')[0],
+        },
+      });
+      
+      await Notification.create({
+        title: 'Document Uploaded',
+        message: `Your document has been uploaded successfully`,
+        type: 'records',
+        read: false,
+        userId: req.user._id,
+        date: new Date().toISOString().split('T')[0],
+      });
+    }
+    
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

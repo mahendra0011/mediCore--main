@@ -1,12 +1,19 @@
 import express from 'express';
 import Billing from '../models/Billing.js';
 import Notification from '../models/Notification.js';
+import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'payment') => {
   await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
+};
+
+const findPatientByName = async (name) => {
+  if (!name) return null;
+  const patient = await User.findOne({ name: new RegExp(name, 'i'), role: 'patient' });
+  return patient;
 };
 
 router.get('/', protect, async (req, res) => {
@@ -46,10 +53,21 @@ router.post('/', protect, async (req, res) => {
     const count = await Billing.countDocuments();
     const invoiceId = `INV-${String(count + 1).padStart(4, '0')}`;
     
+    let finalPatientId = patientId || req.user._id;
+    let finalPatient = patient || req.user.name;
+    
+    if (!finalPatientId && patient) {
+      const patientUser = await findPatientByName(patient);
+      if (patientUser) {
+        finalPatientId = patientUser._id;
+        finalPatient = patientUser.name;
+      }
+    }
+    
     const bill = await Billing.create({
       invoiceId,
-      patient: patient || req.user.name,
-      patientId: patientId || req.user._id,
+      patient: finalPatient,
+      patientId: finalPatientId,
       doctor: doctor || '',
       doctorId: doctorId || null,
       service,
@@ -58,6 +76,10 @@ router.post('/', protect, async (req, res) => {
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'Pending'
     });
+    
+    if (finalPatientId) {
+      await createNotification(finalPatientId, 'New Invoice', `Invoice ${invoiceId} of $${amount} for ${service}`, 'payment');
+    }
     
     res.status(201).json(bill);
   } catch (err) { res.status(400).json({ message: err.message }); }

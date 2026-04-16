@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Download, Calendar, User, Stethoscope, Loader2, Search } from 'lucide-react';
+import { FileText, Download, Calendar, User, Stethoscope, Loader2 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -20,15 +20,16 @@ export default function MyReports() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/records?type=prescription`, {
+      const res = await fetch(`${API_URL}/records`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();
       
       if (data.records) {
-        const prescriptions = data.records.filter(r => r.type === 'prescription');
-        const labReports = data.records.filter(r => r.type === 'lab_report');
-        const dischargeSummaries = data.records.filter(r => r.type === 'discharge_summary');
+        const allRecords = data.records;
+        const prescriptions = allRecords.filter(r => r.type === 'prescription');
+        const labReports = allRecords.filter(r => r.type === 'lab_report');
+        const dischargeSummaries = allRecords.filter(r => r.type === 'discharge_summary');
         setReports({ prescriptions, labReports, dischargeSummaries });
       }
     } catch (error) {
@@ -85,22 +86,112 @@ export default function MyReports() {
           {type === 'prescription' ? 'Prescription' : type === 'lab_report' ? 'Lab Report' : 'Discharge Summary'}
         </CardTitle>
         <CardDescription className="flex items-center gap-1">
-          <Calendar className="w-3 h-3" /> {formatDate(report.createdAt)}
+          <Calendar className="w-3 h-3" /> {formatDate(report.date || report.createdAt)}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {report.doctorName && (
+        {report.data?.patient && (
+          <div className="mb-3">
+            <p className="text-sm font-medium text-foreground">{report.data.patient.name}</p>
+            {report.data.patient.age && <span className="text-xs text-muted-foreground">Age: {report.data.patient.age} | </span>}
+            {report.data.patient.gender && <span className="text-xs text-muted-foreground">Gender: {report.data.patient.gender}</span>}
+            {(report.data.patient.phone || report.data.patient.email) && (
+              <p className="text-xs text-muted-foreground">{report.data.patient.phone} {report.data.patient.email}</p>
+            )}
+          </div>
+        )}
+        
+        {report.data?.doctor && (
           <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-            <Stethoscope className="w-3 h-3" /> Dr. {report.doctorName}
+            <Stethoscope className="w-3 h-3" /> Dr. {report.data.doctor.name} {report.data.doctor.specialization && `(${report.data.doctor.specialization})`}
           </p>
         )}
-        {report.diagnosis && (
-          <p className="text-sm mb-2"><strong>Diagnosis:</strong> {report.diagnosis}</p>
+
+        {report.data?.reportId && (
+          <p className="text-sm mb-1"><strong>Report ID:</strong> {report.data.reportId}</p>
         )}
-        {report.data?.diagnosis && (
-          <p className="text-sm mb-2"><strong>Diagnosis:</strong> {report.data.diagnosis}</p>
+        {report.data?.admissionId && (
+          <p className="text-sm mb-1"><strong>Admission ID:</strong> {report.data.admissionId}</p>
         )}
-        <Button size="sm" onClick={() => downloadReport(report)}>
+        
+        {report.data?.testDate && (
+          <p className="text-sm mb-1"><strong>Test Date:</strong> {report.data.testDate}</p>
+        )}
+        {report.data?.admissionDate && (
+          <p className="text-sm mb-1"><strong>Admission Date:</strong> {report.data.admissionDate}</p>
+        )}
+        {report.data?.dischargeDate && (
+          <p className="text-sm mb-1"><strong>Discharge Date:</strong> {report.data.dischargeDate}</p>
+        )}
+
+        {report.data?.chiefComplaints && (
+          <p className="text-sm mb-1"><strong>Chief Complaints:</strong> {report.data.chiefComplaints}</p>
+        )}
+        
+        {(report.diagnosis || report.data?.diagnosis) && (
+          <p className="text-sm mb-1"><strong>Diagnosis:</strong> {report.diagnosis || report.data?.diagnosis}</p>
+        )}
+
+        {report.data?.treatment && (
+          <p className="text-sm mb-1"><strong>Treatment Given:</strong> {report.data.treatment}</p>
+        )}
+        
+        {report.data?.surgery && (
+          <p className="text-sm mb-1"><strong>Surgery/Procedure:</strong> {report.data.surgery}</p>
+        )}
+
+        {report.data?.medications && report.data.medications.length > 0 && (
+          <div className="mb-2">
+            <p className="text-sm font-medium">Medications:</p>
+            <ul className="text-sm text-muted-foreground ml-4">
+              {report.data.medications.map((med, idx) => (
+                <li key={idx}>
+                  {med.name} {med.dosage && `- ${med.dosage}`} {med.frequency && `(${med.frequency})`}
+                  {med.instructions && ` - ${med.instructions}`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {report.data?.tests && report.data.tests.length > 0 && (
+          <div className="mb-2">
+            <p className="text-sm font-medium">Test Results:</p>
+            <div className="ml-4 space-y-1">
+              {report.data.tests.map((test, idx) => (
+                <p key={idx} className="text-xs text-muted-foreground">
+                  {test.name}: {test.result} {test.unit} {test.referenceRange && `(Ref: ${test.referenceRange})`}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {report.data?.labTests && (
+          <p className="text-sm mb-1"><strong>Lab Tests:</strong> {report.data.labTests}</p>
+        )}
+
+        {report.data?.dischargeAdvice && (
+          <p className="text-sm mb-1"><strong>Discharge Advice:</strong> {report.data.dischargeAdvice}</p>
+        )}
+
+        {report.data?.advice && (
+          <p className="text-sm mb-1"><strong>Advice:</strong> {report.data.advice}</p>
+        )}
+
+        {report.data?.followUp && (
+          <p className="text-sm mb-1"><strong>Follow-up:</strong> {report.data.followUp}</p>
+        )}
+        
+        {report.data?.followUpInstructions && (
+          <p className="text-sm mb-1"><strong>Follow-up Instructions:</strong> {report.data.followUpInstructions}</p>
+        )}
+
+        {report.data?.notes && (
+          <p className="text-sm mb-1"><strong>Notes:</strong> {report.data.notes}</p>
+        )}
+        
+        <Button size="sm" className="mt-3" onClick={() => downloadReport(report)}>
           <Download className="w-4 h-4 mr-2" />Download PDF
         </Button>
       </CardContent>

@@ -318,8 +318,8 @@ const mock = {
     }
     if (status && status !== 'All') bills = bills.filter(b => b.status === status);
     if (patient) bills = bills.filter(b => b.patient.toLowerCase().includes(patient.toLowerCase()));
-    const total = store.bills.reduce((s, b) => s + (b.amount || 0), 0);
-    const paid  = store.bills.reduce((s, b) => s + (b.paid   || 0), 0);
+    const total = bills.reduce((s, b) => s + (b.amount || 0), 0);
+    const paid  = bills.reduce((s, b) => s + (b.paid || 0), 0);
     return { bills, summary: { total, paid } };
   },
   async createBill(body) {
