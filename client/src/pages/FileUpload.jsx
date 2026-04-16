@@ -30,8 +30,6 @@ export default function FileUpload() {
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
-      console.log('Uploading to:', `${API_URL}/reports/upload/${type}`);
-      console.log('Token exists:', !!token);
       
       const res = await fetch(`${API_URL}/reports/upload/${type}`, {
         method: 'POST',
@@ -39,14 +37,25 @@ export default function FileUpload() {
         body: formData
       });
       
-      console.log('Response status:', res.status);
-      const data = await res.json();
-      console.log('Response data:', data);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Upload failed:', res.status, text);
+        try {
+          const data = JSON.parse(text);
+          setUploadResult({ success: false, error: data.error || data.message || `Error: ${res.status}` });
+        } catch {
+          setUploadResult({ success: false, error: `Server error: ${res.status}` });
+        }
+        setLoading(false);
+        return;
+      }
       
-      if (res.ok) {
+      const data = await res.json();
+      
+      if (data.success) {
         setUploadResult({ success: true, ...data });
       } else {
-        setUploadResult({ success: false, error: data.error || data.message });
+        setUploadResult({ success: false, error: data.error || 'Upload failed' });
       }
     } catch (error) {
       console.error('Upload error:', error);

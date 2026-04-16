@@ -2,7 +2,12 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import jwt from 'jsonwebtoken';
 import { generatePrescriptionPDF, generateLabReportPDF, generateDischargeSummaryPDF } from '../services/pdfService.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { 
   sendAppointmentReminder, 
   sendOTPEmail, 
@@ -44,7 +49,6 @@ const optionalAuth = (req, res, next) => {
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer ')) {
     try {
-      const jwt = require('jsonwebtoken');
       const token = auth.split(' ')[1];
       req.user = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     } catch (e) {

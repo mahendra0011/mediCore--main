@@ -465,33 +465,49 @@ const mock = {
 
 // ─── Real API (when backend is running) ───────────────────────────────────
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-let useBackend = false; // start with mock, auto-switch if backend responds
+let useBackend = false;
 
 async function request(path, options = {}) {
-  const token = localStorage.getItem('hms_token');
+  console.log('API Request:', path);
+  const token = localStorage.getItem('hms_token') || localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
+  console.log('API Headers:', headers);
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  console.log('API Response status:', res.status, path);
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Request failed');
   return data;
 }
 
 // Try backend health on load; fall back silently to mock
-fetch(`${BASE}/health`, { signal: AbortSignal.timeout(2000) })
-  .then(r => r.ok && (useBackend = true))
-  .catch(() => {});
+fetch(`${BASE}/health`, { signal: AbortSignal.timeout(3000) })
+  .then(r => {
+    if (r.ok) {
+      useBackend = true;
+      console.log('Backend is available');
+    }
+  })
+  .catch(e => console.log('Backend not available, using mock'));
 
 // Smart dispatcher: tries backend, falls back to mock
-function dispatch(mockFn, realPath, realOpts) {
-  if (!useBackend) return mockFn();
-  return request(realPath, realOpts).catch(() => {
+async function dispatch(mockFn, realPath, realOpts) {
+  console.log('dispatch called for:', realPath, 'useBackend:', useBackend);
+  if (!useBackend) {
+    console.log('Using mock for:', realPath);
+    return mockFn();
+  }
+  try {
+    const res = await request(realPath, realOpts);
+    return res;
+  } catch (error) {
+    console.log('Backend error for', realPath, ':', error.message);
     useBackend = false;
     return mockFn();
-  });
+  }
 }
 
 // ─── Public API surface ────────────────────────────────────────────────────
