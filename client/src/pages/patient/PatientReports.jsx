@@ -20,10 +20,17 @@ export default function MyReports() {
   const fetchReports = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
+      console.log('Fetching reports from:', `${API_URL}/records`);
       const res = await fetch(`${API_URL}/records`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      console.log('Reports response status:', res.status);
       const data = await res.json();
+      console.log('Reports response data:', data);
       
       if (data.records) {
         const allRecords = data.records;
@@ -171,6 +178,27 @@ export default function MyReports() {
           <p className="text-sm mb-1"><strong>Lab Tests:</strong> {report.data.labTests}</p>
         )}
 
+        {report.data?.uploadedFile && (
+          <div className="mb-3 p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium mb-2">Uploaded File:</p>
+            <p className="text-xs text-muted-foreground mb-2">{report.data.uploadedFile.filename}</p>
+            {report.data.uploadedFile.filepath && (
+              <a 
+                href={`${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                View/Download File
+              </a>
+            )}
+          </div>
+        )}
+
+        {report.notes && (
+          <p className="text-sm mb-1"><strong>Notes:</strong> {report.notes}</p>
+        )}
+
         {report.data?.dischargeAdvice && (
           <p className="text-sm mb-1"><strong>Discharge Advice:</strong> {report.data.dischargeAdvice}</p>
         )}
@@ -191,9 +219,21 @@ export default function MyReports() {
           <p className="text-sm mb-1"><strong>Notes:</strong> {report.data.notes}</p>
         )}
         
-        <Button size="sm" className="mt-3" onClick={() => downloadReport(report)}>
-          <Download className="w-4 h-4 mr-2" />Download PDF
-        </Button>
+        {report.data?.uploadedFile?.filepath ? (
+          <Button size="sm" className="mt-3" asChild>
+            <a 
+              href={`${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Download className="w-4 h-4 mr-2" />Download File
+            </a>
+          </Button>
+        ) : (
+          <Button size="sm" className="mt-3" onClick={() => downloadReport(report)}>
+            <Download className="w-4 h-4 mr-2" />Download PDF
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

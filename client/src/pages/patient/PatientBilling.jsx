@@ -19,8 +19,12 @@ export default function PatientBilling() {
   const loadBilling = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
       const res = await fetch(`${API_URL}/billing`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       const data = await res.json();
       if (data.bills) {

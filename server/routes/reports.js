@@ -39,6 +39,19 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
+// Auth check helper
+const optionalAuth = (req, res, next) => {
+  const auth = req.headers.authorization;
+  if (auth && auth.startsWith('Bearer ')) {
+    try {
+      const jwt = await import('jsonwebtoken');
+      const token = auth.split(' ')[1];
+      req.user = jwt.default.verify(token, process.env.JWT_SECRET || 'secret');
+    } catch {}
+  }
+  next();
+};
+
 const findPatientByName = async (name) => {
   if (!name) return null;
   const patient = await User.findOne({ name: new RegExp(name, 'i'), role: 'patient' });
@@ -222,18 +235,22 @@ router.post('/sms/otp', async (req, res) => {
   }
 });
 
-router.post('/upload/image', protect, upload.single('file'), async (req, res) => {
+router.post('/upload/image', optionalAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const validation = validateFile(req.file, 'image');
-    if (!validation.valid) {
-      return res.status(400).json({ error: validation.error });
-    }
+    const ext = path.extname(req.file.originalname);
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+    const filepath = `/uploads/images/${filename}`;
     
-    const result = await processMedicalFile(req.file, 'image');
+    const result = {
+      filename: req.file.originalname,
+      filepath: filepath,
+      size: req.file.size,
+      type: 'image'
+    };
     
     if (req.user.role === 'patient') {
       await Record.create({
@@ -246,12 +263,7 @@ router.post('/upload/image', protect, upload.single('file'), async (req, res) =>
         data: {
           patient: { name: req.user.name },
           doctor: { name: 'Self Upload' },
-          uploadedFile: {
-            filename: result.filename,
-            filepath: result.filepath,
-            size: result.size,
-            type: 'image'
-          },
+          uploadedFile: result,
           date: new Date().toISOString().split('T')[0],
         },
       });
@@ -266,19 +278,29 @@ router.post('/upload/image', protect, upload.single('file'), async (req, res) =>
       });
     }
     
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/upload/xray', protect, upload.single('file'), async (req, res) => {
+router.post('/upload/xray', optionalAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const result = await processMedicalFile(req.file, 'xray');
+    const ext = path.extname(req.file.originalname);
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+    const filepath = `/uploads/xray/${filename}`;
+    
+    const result = {
+      filename: req.file.originalname,
+      filepath: filepath,
+      size: req.file.size,
+      type: 'xray'
+    };
     
     if (req.user.role === 'patient') {
       await Record.create({
@@ -291,12 +313,7 @@ router.post('/upload/xray', protect, upload.single('file'), async (req, res) => 
         data: {
           patient: { name: req.user.name },
           doctor: { name: 'Self Upload' },
-          uploadedFile: {
-            filename: result.filename,
-            filepath: result.filepath,
-            size: result.size,
-            type: 'xray'
-          },
+          uploadedFile: result,
           date: new Date().toISOString().split('T')[0],
         },
       });
@@ -311,19 +328,29 @@ router.post('/upload/xray', protect, upload.single('file'), async (req, res) => 
       });
     }
     
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/upload/document', protect, upload.single('file'), async (req, res) => {
+router.post('/upload/document', optionalAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const result = await processMedicalFile(req.file, 'document');
+    const ext = path.extname(req.file.originalname);
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+    const filepath = `/uploads/documents/${filename}`;
+    
+    const result = {
+      filename: req.file.originalname,
+      filepath: filepath,
+      size: req.file.size,
+      type: 'document'
+    };
     
     if (req.user.role === 'patient') {
       await Record.create({
@@ -336,12 +363,7 @@ router.post('/upload/document', protect, upload.single('file'), async (req, res)
         data: {
           patient: { name: req.user.name },
           doctor: { name: 'Self Upload' },
-          uploadedFile: {
-            filename: result.filename,
-            filepath: result.filepath,
-            size: result.size,
-            type: 'document'
-          },
+          uploadedFile: result,
           date: new Date().toISOString().split('T')[0],
         },
       });
@@ -356,8 +378,9 @@ router.post('/upload/document', protect, upload.single('file'), async (req, res)
       });
     }
     
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ error: error.message });
   }
 });

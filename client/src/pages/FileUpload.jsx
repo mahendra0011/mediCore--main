@@ -29,19 +29,27 @@ export default function FileUpload() {
     formData.append('file', file);
 
     try {
+      const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
+      console.log('Uploading to:', `${API_URL}/reports/upload/${type}`);
+      console.log('Token exists:', !!token);
+      
       const res = await fetch(`${API_URL}/reports/upload/${type}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData
       });
       
+      console.log('Response status:', res.status);
       const data = await res.json();
+      console.log('Response data:', data);
+      
       if (res.ok) {
         setUploadResult({ success: true, ...data });
       } else {
-        setUploadResult({ success: false, error: data.error });
+        setUploadResult({ success: false, error: data.error || data.message });
       }
     } catch (error) {
+      console.error('Upload error:', error);
       setUploadResult({ success: false, error: error.message });
     }
     setLoading(false);
