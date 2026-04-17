@@ -32,11 +32,6 @@ const drive = google.drive({ version: 'v3', auth });
 
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '17ycMzOyZRplmM_OX-Yg2k7qMx-T0Jup-';
 
-// Ensure temp directory exists
-if (!fs.existsSync(TEMP_DIR)) {
-  fs.mkdirSync(TEMP_DIR, { recursive: true });
-}
-
 export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
   try {
     const fileMetadata = {
