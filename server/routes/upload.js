@@ -19,7 +19,28 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
+// Test endpoint to verify Drive connection
+router.get('/test-drive', protect, async (req, res) => {
+  try {
+    // Create a small test file in memory
+    const testBuffer = Buffer.from('Test file content');
+    const result = await uploadToGoogleDrive(testBuffer, 'test-drive-connection.txt', 'text/plain');
+    res.json({ success: true, message: 'Google Drive connection works!', file: result });
+  } catch (error) {
+    console.error('Drive test error:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
 router.post('/', protect, upload.single('file'), async (req, res) => {
+  console.log('Upload request received:', { 
+    user: req.user?.name, 
+    userRole: req.user?.role,
+    fileName: req.file?.originalname,
+    fileSize: req.file?.size,
+    mimeType: req.file?.mimetype 
+  });
+  
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
