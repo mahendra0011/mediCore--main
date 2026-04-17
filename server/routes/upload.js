@@ -41,7 +41,7 @@ router.get('/download/:publicId', protect, async (req, res) => {
 });
 
 // Test endpoint to verify Cloudinary connection
-router.get('/test-drive', protect, async (req, res) => {
+router.get('/test-cloudinary', protect, async (req, res) => {
   try {
     // Check if credentials are loaded
     const credentialsCheck = {
