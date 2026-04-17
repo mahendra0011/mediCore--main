@@ -3,7 +3,11 @@ import { google } from 'googleapis';
 // Decode escaped newlines in private key (from .env)
 const decodePrivateKey = (key) => {
   if (!key) return '';
-  return key.replace(/\\n/g, '\n').replace(/^"|"$/g, '');
+  // Try multiple newline formats
+  let decoded = key.replace(/\\n/g, '\n'); // \n -> actual newline
+  decoded = decoded.replace(/\\r/g, '');   // remove \r if present
+  decoded = decoded.replace(/^"|"$/g, ''); // remove surrounding quotes
+  return decoded;
 };
 
 const GOOGLE_CREDENTIALS = {
