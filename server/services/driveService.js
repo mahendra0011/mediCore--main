@@ -30,13 +30,11 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '17ycMzOyZRplmM_OX-Yg2k7qMx-T0Jup-';
-
 export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
   try {
     const fileMetadata = {
       name: filename,
-      parents: [FOLDER_ID],
+      // No parents - uploads to service account's root "My Drive"
     };
 
     const media = {
@@ -47,7 +45,7 @@ export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
     const response = await drive.files.create({
       resource: fileMetadata,
       media: media,
-      fields: 'id, webViewLink, webContentLink',
+      fields: 'id, webViewLink, webContentLink, parents',
     });
 
     const file = response.data;
@@ -63,7 +61,7 @@ export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
 
     return {
       id: file.id,
-      url: file.webContentLink || `https://drive.google.com/uc?id=${file.id}&export=download`,
+      url: file.webContentLink || file.webViewLink || `https://drive.google.com/uc?id=${file.id}&export=download`,
       filename: filename,
       fileId: file.id,
     };
