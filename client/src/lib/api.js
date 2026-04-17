@@ -484,14 +484,16 @@ async function request(path, options = {}) {
 }
 
 // Try backend health on load; fall back silently to mock
-fetch(`${BASE}/health`, { signal: AbortSignal.timeout(3000) })
+fetch(`${BASE}/health`, { signal: AbortSignal.timeout(10000) })
   .then(r => {
     if (r.ok) {
       useBackend = true;
       console.log('Backend is available');
+    } else {
+      console.log('Backend health check failed:', r.status);
     }
   })
-  .catch(e => console.log('Backend not available, using mock'));
+  .catch(e => console.log('Backend not available, using mock:', e.message));
 
 // Smart dispatcher: tries backend, falls back to mock
 async function dispatch(mockFn, realPath, realOpts) {
