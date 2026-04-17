@@ -2,15 +2,22 @@ import cloudinary from 'cloudinary';
 
 // Configure Cloudinary from environment variable
 // CLOUDINARY_URL format: cloudinary://<api_key>:<api_secret>@<cloud_name>
-if (process.env.CLOUDINARY_URL) {
-  cloudinary.v2.config(process.env.CLOUDINARY_URL);
-} else {
-  // Fallback to individual env vars if needed
-  cloudinary.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
+try {
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.v2.config(process.env.CLOUDINARY_URL);
+    console.log('Cloudinary configured via CLOUDINARY_URL');
+  } else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    cloudinary.v2.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    console.log('Cloudinary configured via individual env vars');
+  } else {
+    console.warn('Cloudinary not configured - no credentials found in environment');
+  }
+} catch (error) {
+  console.error('Cloudinary configuration error:', error.message);
 }
 
 /**
