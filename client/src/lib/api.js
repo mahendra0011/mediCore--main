@@ -467,9 +467,15 @@ const mock = {
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 let useBackend = false;
 
+/** Same token order as login: prefer `hms_token` (real JWT), not legacy `token`. */
+export function getStoredAuthToken() {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem('hms_token') || localStorage.getItem('token');
+}
+
 async function request(path, options = {}) {
   console.log('API Request:', path);
-  const token = localStorage.getItem('hms_token') || localStorage.getItem('token');
+  const token = getStoredAuthToken();
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

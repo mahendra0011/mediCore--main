@@ -4,7 +4,7 @@ import { CreditCard, Search, Calendar, CheckCircle, AlertCircle, XCircle, Indian
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/api';
+import { api, getStoredAuthToken } from '@/lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const statusColors = { Paid: 'bg-success/10 text-success', Pending: 'bg-warning/10 text-warning', Overdue: 'bg-destructive/10 text-destructive', Partial: 'bg-info/10 text-info' };
@@ -19,7 +19,7 @@ export default function PatientBilling() {
   const loadBilling = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
+      const token = getStoredAuthToken();
       const res = await fetch(`${API_URL}/billing`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -43,7 +43,7 @@ export default function PatientBilling() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${getStoredAuthToken()}`
         },
         body: JSON.stringify({ paymentMethod: 'card' })
       });

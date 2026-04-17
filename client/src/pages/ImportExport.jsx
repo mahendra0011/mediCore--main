@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Download, FileSpreadsheet, Users, Stethoscope, CreditCard, CalendarDays, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { getStoredAuthToken } from '@/lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -18,7 +19,7 @@ export default function ImportExport() {
     try {
       const res = await fetch(`${API_URL}/reports/export/${type}?format=${format}`, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${getStoredAuthToken()}` }
       });
       
       const blob = await res.blob();
@@ -50,7 +51,7 @@ export default function ImportExport() {
     try {
       const res = await fetch(`${API_URL}/reports/import/${type}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${getStoredAuthToken()}` },
         body: formData
       });
       

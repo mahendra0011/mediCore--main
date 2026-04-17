@@ -12,7 +12,10 @@ export function AuthProvider({ children }) {
     if (token) {
       api.me()
         .then(u => setUser(u))
-        .catch(() => localStorage.removeItem('hms_token'))
+        .catch(() => {
+          localStorage.removeItem('hms_token');
+          localStorage.removeItem('token');
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -21,6 +24,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password, role) => {
     const data = await api.login({ email, password, role });
+    localStorage.removeItem('token');
     localStorage.setItem('hms_token', data.token);
     setUser(data.user);
     return data.user;
@@ -28,6 +32,7 @@ export function AuthProvider({ children }) {
 
   const register = async ({ name, email, password, role }) => {
     const data = await api.register({ name, email, password, role });
+    localStorage.removeItem('token');
     localStorage.setItem('hms_token', data.token);
     setUser(data.user);
     return data.user;
@@ -35,6 +40,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('hms_token');
+    localStorage.removeItem('token');
     setUser(null);
   };
 

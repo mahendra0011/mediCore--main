@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Download, Calendar, User, Stethoscope, Loader2 } from 'lucide-react';
+import { getStoredAuthToken } from '@/lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -20,7 +21,7 @@ export default function MyReports() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
+      const token = getStoredAuthToken();
       console.log('Fetching reports from:', `${API_URL}/records`);
       const res = await fetch(`${API_URL}/records`, {
         headers: { 
@@ -55,7 +56,7 @@ export default function MyReports() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${getStoredAuthToken()}` 
         },
         body: JSON.stringify({
           patient: { name: user.name, email: user.email },
