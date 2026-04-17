@@ -82,7 +82,11 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

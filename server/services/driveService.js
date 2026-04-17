@@ -1,6 +1,4 @@
 import { google } from 'googleapis';
-import fs from 'fs';
-import path from 'path';
 
 // Decode escaped newlines in private key (from .env)
 const decodePrivateKey = (key) => {
@@ -29,7 +27,6 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '17ycMzOyZRplmM_OX-Yg2k7qMx-T0Jup-';
-const TEMP_DIR = path.join(process.cwd(), 'temp');
 
 // Ensure temp directory exists
 if (!fs.existsSync(TEMP_DIR)) {
@@ -38,10 +35,6 @@ if (!fs.existsSync(TEMP_DIR)) {
 
 export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
   try {
-    // Save buffer to temp file
-    const tempPath = path.join(TEMP_DIR, `${Date.now()}-${filename}`);
-    fs.writeFileSync(tempPath, fileBuffer);
-
     const fileMetadata = {
       name: filename,
       parents: [FOLDER_ID],
@@ -49,7 +42,7 @@ export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
 
     const media = {
       mimeType: mimeType,
-      body: fs.createReadStream(tempPath),
+      body: fileBuffer,
     };
 
     const response = await drive.files.create({
@@ -68,9 +61,6 @@ export const uploadToGoogleDrive = async (fileBuffer, filename, mimeType) => {
         type: 'anyone',
       },
     });
-
-    // Clean up temp file
-    fs.unlinkSync(tempPath);
 
     return {
       id: file.id,
