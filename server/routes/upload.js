@@ -4,7 +4,7 @@ import path from 'path';
 import Record from '../models/Record.js';
 import Notification from '../models/Notification.js';
 import { protect } from '../middleware/auth.js';
-import { uploadToGoogleDrive } from '../services/driveService.js';
+import { uploadFileToCloudinary } from '../services/cloudinaryService.js';
 
 const router = express.Router();
 
@@ -14,12 +14,12 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-// Proxy download route - fetches file from Google Drive and streams to client
-router.get('/download/:fileId', protect, async (req, res) => {
+// Proxy download route - redirects to Cloudinary URL
+router.get('/download/:publicId', protect, async (req, res) => {
   try {
-    const { fileId } = req.params;
+    const { publicId } = req.params;
     const record = await Record.findOne({
-      'data.uploadedFile.fileId': fileId,
+      'data.uploadedFile.publicId': publicId,
       patientId: req.user._id
     });
     
@@ -27,7 +27,7 @@ router.get('/download/:fileId', protect, async (req, res) => {
       return res.status(404).json({ error: 'File not found or access denied' });
     }
 
-    // For now, redirect to Google Drive URL
+    // Redirect to Cloudinary URL
     const fileUrl = record.data.uploadedFile.url;
     if (fileUrl) {
       res.redirect(fileUrl);
@@ -40,37 +40,34 @@ router.get('/download/:fileId', protect, async (req, res) => {
   }
 });
 
-// Test endpoint to verify Drive connection
+// Test endpoint to verify Cloudinary connection
 router.get('/test-drive', protect, async (req, res) => {
   try {
     // Check if credentials are loaded
     const credentialsCheck = {
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Set' : 'Missing',
-      privateKeyId: process.env.GOOGLE_CLOUD_PRIVATE_KEY_ID ? 'Set' : 'Missing',
-      clientEmail: process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? 'Set' : 'Missing',
-      folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'Using default',
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
+      apiKey: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
+      urlConfigured: process.env.CLOUDINARY_URL ? 'Set' : 'Missing',
     };
     
     // Create a small test file in memory
     const testBuffer = Buffer.from('Test file content');
-    const result = await uploadToGoogleDrive(testBuffer, 'test-drive-connection.txt', 'text/plain');
+    const result = await uploadFileToCloudinary(testBuffer, 'test-cloudinary-connection.txt', 'text/plain');
     res.json({ 
       success: true, 
-      message: 'Google Drive connection works!',
+      message: 'Cloudinary connection works!',
       credentials: credentialsCheck,
       file: result 
     });
   } catch (error) {
-    console.error('Drive test error:', error);
+    console.error('Cloudinary test error:', error);
     res.status(500).json({ 
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       credentialsCheck: {
-        projectId: process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Set' : 'Missing',
-        privateKeyId: process.env.GOOGLE_CLOUD_PRIVATE_KEY_ID ? 'Set' : 'Missing',
-        clientEmail: process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? 'Set' : 'Missing',
-        privateKeyLength: process.env.GOOGLE_CLOUD_PRIVATE_KEY ? process.env.GOOGLE_CLOUD_PRIVATE_KEY.length : 0,
-        folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'Using default',
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
+        apiKey: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
+        urlConfigured: process.env.CLOUDINARY_URL ? 'Set' : 'Missing',
       }
     });
   }
@@ -90,17 +87,17 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Upload to Google Drive
-    console.log('Attempting Google Drive upload...');
-    const driveResult = await uploadToGoogleDrive(
+    // Upload to Cloudinary
+    console.log('Attempting Cloudinary upload...');
+    const cloudinaryResult = await uploadFileToCloudinary(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype
     );
-    console.log('Google Drive upload successful:', { 
-      fileName: driveResult.filename, 
-      fileId: driveResult.fileId, 
-      url: driveResult.url 
+    console.log('Cloudinary upload successful:', { 
+      fileName: cloudinaryResult.filename, 
+      publicId: cloudinaryResult.publicId, 
+      url: cloudinaryResult.url 
     });
 
     let recordType = 'prescription';
@@ -122,12 +119,12 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
         doctor: { name: 'Self Upload' },
         uploadedFile: {
           filename: req.file.originalname,
-          url: driveResult.url,
-          fileId: driveResult.fileId,
+          url: cloudinaryResult.url,
+          publicId: cloudinaryResult.publicId,
           size: req.file.size,
           format: path.extname(req.file.originalname).replace('.', ''),
           mimeType: req.file.mimetype,
-          storedIn: 'google_drive',
+          storedIn: 'cloudinary',
         },
         date: new Date().toISOString().split('T')[0],
       },
@@ -144,12 +141,12 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
 
     res.json({
       success: true,
-      url: driveResult.url,
+      url: cloudinaryResult.url,
       filename: req.file.originalname,
       size: req.file.size,
       format: path.extname(req.file.originalname).replace('.', ''),
-      fileId: driveResult.fileId,
-      storedIn: 'google_drive',
+      publicId: cloudinaryResult.publicId,
+      storedIn: 'cloudinary',
     });
   } catch (error) {
     console.error('Upload error:', error);
