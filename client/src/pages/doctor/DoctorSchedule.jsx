@@ -151,7 +151,7 @@ export default function DoctorSchedule() {
             <div><p className="text-muted-foreground">Name</p><p className="font-medium text-foreground">{doctor.name}</p></div>
             <div><p className="text-muted-foreground">Specialization</p><p className="font-medium text-foreground">{doctor.specialization}</p></div>
             <div><p className="text-muted-foreground">Experience</p><p className="font-medium text-foreground">{doctor.experience}</p></div>
-            <div><p className="text-muted-foreground">Consultation Fees</p><p className="font-medium text-foreground">₹{doctor.consultation_fees || doctor.fees}</p></div>
+            <div><p className="text-muted-foreground">Consultation Fees</p><p className="font-medium text-foreground">Rs {doctor.consultation_fees || doctor.fees}</p></div>
             <div><p className="text-muted-foreground">Location</p><p className="font-medium text-foreground">{doctor.location || 'Not set'}</p></div>
             <div><p className="text-muted-foreground">Rating</p><p className="font-medium text-foreground">{doctor.rating} ({doctor.reviews_count || 0} reviews)</p></div>
           </div>

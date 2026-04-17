@@ -82,7 +82,7 @@ export default function AdminDepartments() {
               <p className="text-sm text-muted-foreground mb-3">{dept.description}</p>
               <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
                 {dept.head && <div className="flex items-center gap-2"><span>Head: {dept.head}</span></div>}
-                <div className="flex items-center gap-2"><IndianRupee className="w-3.5 h-3.5" /><span>Fees: ${dept.fees_structure}</span></div>
+                <div className="flex items-center gap-2"><IndianRupee className="w-3.5 h-3.5" /><span>Fees: Rs {dept.fees_structure}</span></div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => handleEdit(dept)}>

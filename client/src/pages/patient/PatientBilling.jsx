@@ -69,21 +69,21 @@ export default function PatientBilling() {
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><IndianRupee className="w-5 h-5 text-primary" /></div>
             <p className="text-sm text-muted-foreground">Total Billed</p>
           </div>
-          <p className="font-heading text-2xl font-bold text-foreground">${summary.total.toLocaleString()}</p>
+          <p className="font-heading text-2xl font-bold text-foreground">Rs {summary.total.toLocaleString()}</p>
         </div>
         <div className="bg-card rounded-2xl border border-border/60 p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-success" /></div>
             <p className="text-sm text-muted-foreground">Paid</p>
           </div>
-          <p className="font-heading text-2xl font-bold text-success">${summary.paid.toLocaleString()}</p>
+          <p className="font-heading text-2xl font-bold text-success">Rs {summary.paid.toLocaleString()}</p>
         </div>
         <div className="bg-card rounded-2xl border border-border/60 p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center"><AlertCircle className="w-5 h-5 text-warning" /></div>
             <p className="text-sm text-muted-foreground">Outstanding</p>
           </div>
-          <p className="font-heading text-2xl font-bold text-warning">${(summary.total - summary.paid).toLocaleString()}</p>
+          <p className="font-heading text-2xl font-bold text-warning">Rs {(summary.total - summary.paid).toLocaleString()}</p>
         </div>
       </div>
 
@@ -114,14 +114,14 @@ export default function PatientBilling() {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Amount</p>
-                  <p className="font-heading text-lg font-bold text-foreground">${bill.amount}</p>
+                  <p className="font-heading text-lg font-bold text-foreground">Rs {bill.amount}</p>
                 </div>
                 {bill.status !== 'Paid' && (
                   <Button size="sm" onClick={() => handlePayBill(bill._id)}>Pay Now</Button>
                 )}
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="font-heading text-lg font-bold text-success">${bill.paid}</p>
+                  <p className="font-heading text-lg font-bold text-success">Rs {bill.paid}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">

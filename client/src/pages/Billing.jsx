@@ -54,7 +54,7 @@ export default function Billing() {
           </div>
           <div>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Total Invoiced</p>
-            <p className="text-2xl font-bold font-heading text-card-foreground">${(summary.total ?? 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold font-heading text-card-foreground">Rs {(summary.total ?? 0).toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-card rounded-xl border p-5 shadow-sm flex items-center gap-4">
@@ -63,7 +63,7 @@ export default function Billing() {
           </div>
           <div>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Collected</p>
-            <p className="text-2xl font-bold font-heading text-success">${(summary.paid ?? 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold font-heading text-success">Rs {(summary.paid ?? 0).toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-card rounded-xl border p-5 shadow-sm flex items-center gap-4">
@@ -72,7 +72,7 @@ export default function Billing() {
           </div>
           <div>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Outstanding</p>
-            <p className="text-2xl font-bold font-heading text-warning">${outstanding.toLocaleString()}</p>
+            <p className="text-2xl font-bold font-heading text-warning">Rs {outstanding.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -115,8 +115,8 @@ export default function Billing() {
                   <td className="px-4 py-3 text-sm font-medium text-card-foreground">{b.patient}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{b.doctor}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground max-w-[180px] truncate">{b.service}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-card-foreground">${b.amount?.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-sm text-success font-medium">${b.paid?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-card-foreground">Rs {b.amount?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-success font-medium">Rs {b.paid?.toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusCls[b.status] ?? 'bg-muted text-muted-foreground'}`}>{b.status}</span>
                   </td>

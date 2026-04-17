@@ -255,7 +255,7 @@ export default function DoctorAppointments() {
       });
       await api.createNotification({
         title: 'New Invoice',
-        message: `New invoice of $${billAmount} generated for ${apt.type} - ${apt.department}`,
+        message: `New invoice of Rs ${billAmount} generated for ${apt.type} - ${apt.department}`,
         type: 'payment',
         userId: apt.patientId || apt.patient,
       });
