@@ -1,15 +1,9 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 import Record from '../models/Record.js';
 import Notification from '../models/Notification.js';
 import { protect } from '../middleware/auth.js';
 import { uploadToGoogleDrive } from '../services/driveService.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -17,6 +11,32 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 25 * 1024 * 1024 }
+});
+
+// Proxy download route - fetches file from Google Drive and streams to client
+router.get('/download/:fileId', protect, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const record = await Record.findOne({
+      'data.uploadedFile.fileId': fileId,
+      patientId: req.user._id
+    });
+    
+    if (!record) {
+      return res.status(404).json({ error: 'File not found or access denied' });
+    }
+
+    // For now, redirect to Google Drive URL
+    const fileUrl = record.data.uploadedFile.url;
+    if (fileUrl) {
+      res.redirect(fileUrl);
+    } else {
+      res.status(404).json({ error: 'File URL not found' });
+    }
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Test endpoint to verify Drive connection
