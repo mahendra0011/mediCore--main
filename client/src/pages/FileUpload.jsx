@@ -31,7 +31,7 @@ export default function FileUpload() {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('hms_token');
       
-      const res = await fetch(`${API_URL}/reports/upload/${type}`, {
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData

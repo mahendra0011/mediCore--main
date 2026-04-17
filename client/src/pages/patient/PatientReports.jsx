@@ -182,9 +182,9 @@ export default function MyReports() {
           <div className="mb-3 p-3 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-2">Uploaded File:</p>
             <p className="text-xs text-muted-foreground mb-2">{report.data.uploadedFile.filename}</p>
-            {report.data.uploadedFile.filepath && (
+            {(report.data.uploadedFile.url || report.data.uploadedFile.filepath) && (
               <a 
-                href={`${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
+                href={report.data.uploadedFile.url || `${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-primary hover:underline"
@@ -219,10 +219,10 @@ export default function MyReports() {
           <p className="text-sm mb-1"><strong>Notes:</strong> {report.data.notes}</p>
         )}
         
-        {report.data?.uploadedFile?.filepath ? (
+        {(report.data?.uploadedFile?.url || report.data?.uploadedFile?.filepath) ? (
           <Button size="sm" className="mt-3" asChild>
             <a 
-              href={`${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
+              href={report.data.uploadedFile.url || `${API_URL.replace('/api', '')}${report.data.uploadedFile.filepath}`}
               target="_blank"
               rel="noopener noreferrer"
             >
