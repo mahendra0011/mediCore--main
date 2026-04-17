@@ -22,13 +22,36 @@ const upload = multer({
 // Test endpoint to verify Drive connection
 router.get('/test-drive', protect, async (req, res) => {
   try {
+    // Check if credentials are loaded
+    const credentialsCheck = {
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Set' : 'Missing',
+      privateKeyId: process.env.GOOGLE_CLOUD_PRIVATE_KEY_ID ? 'Set' : 'Missing',
+      clientEmail: process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? 'Set' : 'Missing',
+      folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'Using default',
+    };
+    
     // Create a small test file in memory
     const testBuffer = Buffer.from('Test file content');
     const result = await uploadToGoogleDrive(testBuffer, 'test-drive-connection.txt', 'text/plain');
-    res.json({ success: true, message: 'Google Drive connection works!', file: result });
+    res.json({ 
+      success: true, 
+      message: 'Google Drive connection works!',
+      credentials: credentialsCheck,
+      file: result 
+    });
   } catch (error) {
     console.error('Drive test error:', error);
-    res.status(500).json({ error: error.message, stack: error.stack });
+    res.status(500).json({ 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      credentialsCheck: {
+        projectId: process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Set' : 'Missing',
+        privateKeyId: process.env.GOOGLE_CLOUD_PRIVATE_KEY_ID ? 'Set' : 'Missing',
+        clientEmail: process.env.GOOGLE_CLOUD_CLIENT_EMAIL ? 'Set' : 'Missing',
+        privateKeyLength: process.env.GOOGLE_CLOUD_PRIVATE_KEY ? process.env.GOOGLE_CLOUD_PRIVATE_KEY.length : 0,
+        folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'Using default',
+      }
+    });
   }
 });
 
@@ -47,11 +70,17 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
     }
 
     // Upload to Google Drive
+    console.log('Attempting Google Drive upload...');
     const driveResult = await uploadToGoogleDrive(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype
     );
+    console.log('Google Drive upload successful:', { 
+      fileName: driveResult.filename, 
+      fileId: driveResult.fileId, 
+      url: driveResult.url 
+    });
 
     let recordType = 'prescription';
     if (req.file.mimetype.startsWith('image/')) {
