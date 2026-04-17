@@ -12,9 +12,15 @@ export function AuthProvider({ children }) {
     if (token) {
       api.me()
         .then(u => setUser(u))
-        .catch(() => {
-          localStorage.removeItem('hms_token');
-          localStorage.removeItem('token');
+        .catch((err) => {
+          const isAuthError = err?.message?.includes('401') || 
+                           err?.message?.toLowerCase().includes('not authorized') ||
+                           err?.message?.toLowerCase().includes('token') ||
+                           err?.message?.toLowerCase().includes('unauthorized');
+          if (isAuthError) {
+            localStorage.removeItem('hms_token');
+            localStorage.removeItem('token');
+          }
         })
         .finally(() => setLoading(false));
     } else {

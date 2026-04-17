@@ -501,21 +501,85 @@ fetch(`${BASE}/health`, { signal: AbortSignal.timeout(10000) })
   })
   .catch(e => console.log('Backend not available, using mock:', e.message));
 
-// Smart dispatcher: tries backend, falls back to mock
+// Smart dispatcher: tries backend first, falls back to mock only for non-critical ops
+// Auth operations must use backend - fail if backend is unavailable (don't silently use mock)
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/me', '/auth/profile'];
+function isAuthPath(path) {
+  return AUTH_PATHS.some(p => path.startsWith(p));
+}
+
+// Re-check health if previous check failed and this is an auth request
+async function checkHealth() {
+  try {
+    const res = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      useBackend = true;
+      console.log('Backend now available');
+      return true;
+    }
+  } catch (e) {
+    console.log('Health check retry failed:', e.message);
+  }
+  return false;
+}
+
 async function dispatch(mockFn, realPath, realOpts) {
   console.log('dispatch called for:', realPath, 'useBackend:', useBackend);
-  if (!useBackend) {
-    console.log('Using mock for:', realPath);
-    return mockFn();
+  
+  // If backend is available, always try it
+  if (useBackend) {
+    try {
+      const res = await request(realPath, realOpts);
+      return res;
+    } catch (error) {
+      console.log('Backend error for', realPath, ':', error.message);
+      // For auth operations, retry health check then try once more
+      if (isAuthPath(realPath)) {
+        console.log('Auth path failed, retrying health check...');
+        const recovered = await checkHealth();
+        if (recovered) {
+          try {
+            const res = await request(realPath, realOpts);
+            return res;
+          } catch (retryError) {
+            console.log('Retry failed:', retryError.message);
+            throw retryError;
+          }
+        }
+        throw error;
+      }
+      // For non-auth, fall back to mock
+      console.log('Falling back to mock for this request only');
+      return mockFn();
+    }
   }
-  try {
-    const res = await request(realPath, realOpts);
-    return res;
-  } catch (error) {
-    console.log('Backend error for', realPath, ':', error.message);
-    useBackend = false;
-    return mockFn();
+  
+  // Backend not available - check if it's an auth path
+  if (isAuthPath(realPath)) {
+    // Try health check first for auth paths
+    const recovered = await checkHealth();
+    if (recovered) {
+      try {
+        const res = await request(realPath, realOpts);
+        return res;
+      } catch (error) {
+        console.log('Backend error for', realPath, ':', error.message);
+        throw error;
+      }
+    }
+    // Can't reach backend - try anyway and show error
+    try {
+      const res = await request(realPath, realOpts);
+      return res;
+    } catch (error) {
+      console.log('Backend error for', realPath, ':', error.message);
+      throw new Error('Backend unavailable. Please ensure the server is running at ' + BASE);
+    }
   }
+  
+  // For non-auth paths, use mock when backend unavailable
+  console.log('Using mock for:', realPath);
+  return mockFn();
 }
 
 // ─── Public API surface ────────────────────────────────────────────────────
