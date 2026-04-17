@@ -166,7 +166,7 @@ export default function FileUpload() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">File Upload</h1>
-        <p className="text-muted-foreground">Upload your medical documents and images. All files are securely stored in Google Drive.</p>
+        <p className="text-muted-foreground">Upload your medical documents and images. Files are stored securely in Cloudinary.</p>
       </div>
 
       {/* Upload Success/Error Messages */}
@@ -209,7 +209,7 @@ export default function FileUpload() {
             <CardHeader>
               <CardTitle>Upload Medical Documents</CardTitle>
               <CardDescription>
-                Supported formats: PDF, JPG, PNG, GIF (max 25MB). Files are automatically stored in Google Drive.
+                Supported formats: PDF, JPG, PNG, GIF (max 25MB). Files are stored in Cloudinary.
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,8 +19,6 @@ import reviewRoutes from './routes/reviews.js';
 import notificationRoutes from './routes/notifications.js';
 import reportRoutes from './routes/reports.js';
 import uploadRoutes from './routes/upload.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

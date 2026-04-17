@@ -1,62 +1,98 @@
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
+import path from 'path';
 
-// Configure Cloudinary from environment variable
-// CLOUDINARY_URL format: cloudinary://<api_key>:<api_secret>@<cloud_name>
-try {
-  if (process.env.CLOUDINARY_URL) {
-    cloudinary.v2.config(process.env.CLOUDINARY_URL);
-    console.log('Cloudinary configured via CLOUDINARY_URL');
-  } else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-    cloudinary.v2.config({
+let configured = false;
+
+function ensureCloudinaryConfigured() {
+  if (configured) return;
+
+  const url = process.env.CLOUDINARY_URL?.trim();
+  if (url) {
+    const m = /^cloudinary:\/\/([^:]+):([^@]+)@([^/]+)$/.exec(url);
+    if (m) {
+      cloudinary.config({
+        cloud_name: m[3],
+        api_key: m[1],
+        api_secret: m[2],
+        secure: true,
+      });
+      configured = true;
+      console.log('Cloudinary configured via CLOUDINARY_URL');
+      return;
+    }
+  }
+
+  if (
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  ) {
+    cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
     });
+    configured = true;
     console.log('Cloudinary configured via individual env vars');
-  } else {
-    console.warn('Cloudinary not configured - no credentials found in environment');
+    return;
   }
-} catch (error) {
-  console.error('Cloudinary configuration error:', error.message);
+
+  throw new Error(
+    'Cloudinary is not configured. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.'
+  );
 }
 
 /**
- * Upload file to Cloudinary
- * @param {Buffer} fileBuffer - File content as buffer
- * @param {string} filename - Original filename
- * @param {string} mimeType - MIME type of the file
- * @param {string} folder - Cloudinary folder (default: 'medicore/uploads')
- * @returns {Promise<Object>} Upload result with url, publicId, etc.
+ * Upload file to Cloudinary (images as image, PDF and other files as raw).
+ * @param {Buffer} fileBuffer
+ * @param {string} filename
+ * @param {string} mimeType
+ * @param {string} folder
  */
-export const uploadFileToCloudinary = async (fileBuffer, filename, mimeType, folder = 'medicore/uploads') => {
-  try {
-    const uniqueFilename = `${Date.now()}-${filename.replace(/\s+/g, '_')}`;
+export const uploadFileToCloudinary = async (
+  fileBuffer,
+  filename,
+  mimeType,
+  folder = 'medicore/uploads'
+) => {
+  ensureCloudinaryConfigured();
 
-    const result = await cloudinary.v2.uploader.upload(
-      fileBuffer,
+  const safeName = path.basename(filename).replace(/\s+/g, '_') || 'upload';
+  const ext = path.extname(safeName);
+  const base = ext ? safeName.slice(0, -ext.length) : safeName;
+  const publicId = `${Date.now()}-${base}${ext}`;
+
+  const resourceType = mimeType.startsWith('image/') ? 'image' : 'raw';
+
+  const result = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: mimeType.startsWith('image') ? 'image' : 'raw',
-        folder: folder,
-        public_id: uniqueFilename,
-        format: mimeType.split('/')[1] || null,
+        folder,
+        public_id: publicId,
+        resource_type: resourceType,
+        use_filename: false,
         overwrite: false,
+      },
+      (err, uploadResult) => {
+        if (err) reject(err);
+        else resolve(uploadResult);
       }
     );
+    stream.end(fileBuffer);
+  });
 
-    return {
-      id: result.public_id,
-      url: result.secure_url,
-      filename: filename,
-      publicId: result.public_id,
-      format: result.format,
-      size: result.bytes,
-      mimeType: mimeType,
-      storedIn: 'cloudinary',
-    };
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw error;
-  }
+  return {
+    id: result.public_id,
+    url: result.secure_url,
+    filename,
+    publicId: result.public_id,
+    fileId: result.public_id,
+    format: result.format,
+    size: result.bytes,
+    mimeType,
+    storedIn: 'cloudinary',
+  };
 };
 
 export default cloudinary;
