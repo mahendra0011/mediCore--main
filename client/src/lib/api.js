@@ -511,7 +511,7 @@ function isAuthPath(path) {
 // Re-check health if previous check failed and this is an auth request
 async function checkHealth() {
   try {
-    const res = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       useBackend = true;
       console.log('Backend now available');
@@ -573,7 +573,7 @@ async function dispatch(mockFn, realPath, realOpts) {
       return res;
     } catch (error) {
       console.log('Backend error for', realPath, ':', error.message);
-      throw new Error('Backend unavailable. Please ensure the server is running at ' + BASE);
+      throw new Error('Unable to connect to server. If using the deployed app, it may be starting up. Please try again in a few seconds, or run the backend locally.');
     }
   }
   

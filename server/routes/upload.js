@@ -93,6 +93,7 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
       patient: req.user.name,
       patientId: req.user._id,
       doctor: 'Self Upload',
+      date: new Date().toISOString().split('T')[0],
       diagnosis: `Uploaded ${req.file.originalname}`,
       type: recordType,
       notes: `File: ${req.file.originalname}`,
