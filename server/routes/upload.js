@@ -19,7 +19,7 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-router.post('/upload', protect, upload.single('file'), async (req, res) => {
+router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

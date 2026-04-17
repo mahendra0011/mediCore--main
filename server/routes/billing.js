@@ -53,15 +53,26 @@ router.post('/', protect, async (req, res) => {
     const count = await Billing.countDocuments();
     const invoiceId = `INV-${String(count + 1).padStart(4, '0')}`;
     
-    let finalPatientId = patientId || req.user._id;
+    let finalPatientId = patientId;
     let finalPatient = patient || req.user.name;
     
+    // If patientId not provided, try to find by patient name
     if (!finalPatientId && patient) {
       const patientUser = await findPatientByName(patient);
       if (patientUser) {
         finalPatientId = patientUser._id;
         finalPatient = patientUser.name;
       }
+    }
+    
+    // If still no patientId and user is a patient, use their own ID
+    if (!finalPatientId && req.user.role === 'patient') {
+      finalPatientId = req.user._id;
+    }
+    
+    // For doctors creating bills, if no patient found, return error
+    if (!finalPatientId && req.user.role === 'doctor') {
+      return res.status(400).json({ message: 'Patient not found. Please select a valid patient.' });
     }
     
     const bill = await Billing.create({
