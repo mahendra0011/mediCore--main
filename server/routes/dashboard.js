@@ -1,6 +1,7 @@
 import express from 'express';
 import Patient from '../models/Patient.js';
 import Doctor from '../models/Doctor.js';
+import User from '../models/User.js';
 import Appointment from '../models/Appointment.js';
 import Billing from '../models/Billing.js';
 import { protect } from '../middleware/auth.js';
@@ -12,8 +13,8 @@ router.get('/stats', protect, async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
     const [totalPatients, totalDoctors, todayAppointments, billing, recentAppointments] = await Promise.all([
-      Patient.countDocuments(),
-      Doctor.countDocuments({ available: true }),
+      User.countDocuments({ role: 'patient' }),
+      User.countDocuments({ role: 'doctor' }),
       Appointment.countDocuments({ date: today }),
       Billing.aggregate([{ $group: { _id: null, revenue: { $sum: '$paid' } } }]),
       Appointment.find().sort({ createdAt: -1 }).limit(5),
