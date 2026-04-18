@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Bell, Calendar, CreditCard, FileText, Check, Trash2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { useNotificationCount } from '@/context/NotificationContext';
 import { api } from '@/lib/api';
 
 const typeIcons = { reminder: Calendar, payment: CreditCard, appointment: Calendar, records: FileText };
@@ -10,13 +11,14 @@ const typeColors = { reminder: 'bg-warning/10 text-warning', payment: 'bg-succes
 
 export default function Notifications() {
   const { user } = useAuth();
+  const { refreshCount } = useNotificationCount();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const data = await api.getNotifications({ userId: user?.id });
+      const data = await api.getNotifications({});
       setNotifications(data);
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -25,11 +27,19 @@ export default function Notifications() {
   useEffect(() => { loadNotifications(); }, []);
 
   const handleMarkRead = async (id) => {
-    try { await api.markNotificationRead(id); loadNotifications(); } catch (e) { console.error(e); }
+    try { 
+      await api.markNotificationRead(id); 
+      loadNotifications();
+      refreshCount();
+    } catch (e) { console.error(e); }
   };
 
   const handleDelete = async (id) => {
-    try { await api.deleteNotification(id); loadNotifications(); } catch (e) { console.error(e); }
+    try { 
+      await api.deleteNotification(id); 
+      loadNotifications();
+      refreshCount();
+    } catch (e) { console.error(e); }
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;

@@ -7,12 +7,14 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const filter = {};
-    if (req.user.role === 'patient') {
-      filter.userId = req.user._id.toString();
-    } else if (req.user.role === 'doctor') {
-      filter.userId = req.user._id.toString();
+    // For patient and doctor, show their own notifications
+    // For admin, show all notifications (or filter by userId if provided)
+    if (req.user.role === 'admin') {
+      if (req.query.userId) {
+        filter.userId = req.query.userId;
+      }
     } else {
-      if (req.query.userId) filter.userId = req.query.userId;
+      filter.userId = req.user._id.toString();
     }
     const notifications = await Notification.find(filter).sort({ createdAt: -1 });
     res.json(notifications);

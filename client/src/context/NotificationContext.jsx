@@ -19,6 +19,8 @@ export function NotificationProvider({ children }) {
 
   useEffect(() => {
     refreshCount();
+    const interval = setInterval(refreshCount, 15000);
+    return () => clearInterval(interval);
   }, [refreshCount]);
 
   return (
