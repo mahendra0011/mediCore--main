@@ -56,19 +56,32 @@ export default function PatientBilling() {
   const downloadInvoice = (bill) => {
     const content = `
 ========================================
-        MEDICORE HOSPITAL
+          MEDICORE HOSPITAL
 ========================================
 INVOICE: ${bill.invoiceId}
-Date: ${new Date().toLocaleDateString()}
-Due Date: ${bill.dueDate}
+Date: ${bill.date || new Date().toISOString().split('T')[0]}
+Due Date: ${bill.dueDate || 'N/A'}
 ----------------------------------------
-Patient: ${user?.name}
+PATIENT DETAILS
+----------------------------------------
+Name: ${user?.name || bill.patient}
+Email: ${bill.patientId?.email || 'N/A'}
+Phone: ${bill.patientId?.phone || 'N/A'}
+----------------------------------------
+APPOINTMENT DETAILS
+----------------------------------------
 Service: ${bill.service}
-Doctor: ${bill.doctor || 'N/A'}
+Doctor: ${bill.doctorId?.name || bill.doctor || 'N/A'}
+Specialization: ${bill.doctorId?.specialization || 'General'}
+----------------------------------------
+PAYMENT DETAILS
 ----------------------------------------
 Amount: Rs ${bill.amount}
 Paid: Rs ${bill.paid}
+Outstanding: Rs ${bill.amount - bill.paid}
 Status: ${bill.status}
+Payment Method: ${bill.paymentMethod || 'Pending'}
+Transaction ID: ${bill.transactionId || 'N/A'}
 ========================================
     `.trim();
     
@@ -135,15 +148,22 @@ Status: ${bill.status}
                 <div>
                   <p className="text-xs font-mono text-muted-foreground">{bill.invoiceId}</p>
                   <h3 className="font-heading font-semibold text-foreground">{bill.service}</h3>
-                  <p className="text-sm text-primary">{bill.doctor}</p>
+                  <p className="text-sm text-primary">{bill.doctorId?.name || bill.doctor}</p>
+                  <p className="text-xs text-muted-foreground">{bill.doctorId?.specialization}</p>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[bill.status]}`}>{bill.status}</span>
               </div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Amount</p>
-                  <p className="font-heading text-lg font-bold text-foreground">Rs {bill.amount}</p>
+                  <p className="font-heading font-bold text-foreground">Rs {bill.amount}</p>
                 </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Outstanding</p>
+                  <p className="font-heading font-bold text-warning">Rs {bill.amount - bill.paid}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => downloadInvoice(bill)}>
                     <Download className="w-3.5 h-3.5 mr-1" /> Download
@@ -155,6 +175,7 @@ Status: ${bill.status}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" /><span>Due: {bill.dueDate}</span>
+                {bill.transactionId && <span className="ml-2">TXN: {bill.transactionId}</span>}
               </div>
             </motion.div>
           ))}

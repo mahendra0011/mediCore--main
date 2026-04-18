@@ -33,8 +33,8 @@ router.get('/', protect, async (req, res) => {
     ];
     
     const bills = await Billing.find(filter)
-      .populate('patientId', 'name email')
-      .populate('doctorId', 'name')
+      .populate('patientId', 'name email phone')
+      .populate('doctorId', 'name specialization')
       .sort({ createdAt: -1 });
     
     const total = await Billing.aggregate([
