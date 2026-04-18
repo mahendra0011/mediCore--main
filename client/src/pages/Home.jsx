@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Pills, Microscope, Syringe, Ambulance, Check, Circle, Facebook, Twitter, Instagram, Linkedin, Send, Droplets, TestTube, Thermometer, Xray } from "lucide-react";
+import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Microscope, Syringe, Ambulance, Check, Circle, Send, Droplets, TestTube, Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +19,7 @@ const services = [
   { icon: Thermometer, name: "Blood Pressure Check", price: "Rs 100" },
   { icon: Droplets, name: "Blood Sugar Test", price: "Rs 150" },
   { icon: TestTube, name: "Full Blood Count", price: "Rs 300" },
-  { icon: Xray, name: "X-Ray Scan", price: "Rs 500" },
+  { icon: Image, name: "X-Ray Scan", price: "Rs 500" },
   { icon: HeartPulse, name: "ECG Test", price: "Rs 400" },
   { icon: Microscope, name: "Thyroid Panel", price: "Rs 500" },
 ];
@@ -403,13 +403,13 @@ const Home = () => {
 
               {/* Social Links */}
               <div className="flex items-center gap-4 mt-6">
-                {[Facebook, Twitter, Instagram, Linkedin].map((SocialIcon, i) => (
+                {['FB', 'TW', 'IG', 'LI'].map((social, i) => (
                   <a 
                     key={i}
                     href="#" 
-                    className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-white flex items-center justify-center transition-all"
+                    className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-white flex items-center justify-center transition-all text-xs font-bold"
                   >
-                    <SocialIcon className="w-4 h-4" />
+                    {social}
                   </a>
                 ))}
               </div>
