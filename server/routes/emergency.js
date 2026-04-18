@@ -74,13 +74,15 @@ router.post('/', protect, async (req, res) => {
 router.put('/:id/assign', protect, async (req, res) => {
   try {
     const { doctorId, doctorName } = req.body;
+    console.log(`[emergency assign] doctorId from frontend: ${doctorId}`);
     
-    // Convert Doctor._id to User._id for assignedDoctor (ref: User)
     let userDoctorId = doctorId;
     if (doctorId) {
       const doctor = await Doctor.findById(doctorId);
+      console.log(`[emergency assign] Doctor.findById(${doctorId}):`, doctor ? `found user_id=${doctor.user_id}` : 'not found');
       if (doctor && doctor.user_id) {
         userDoctorId = doctor.user_id;
+        console.log(`[emergency assign] converted to User._id: ${userDoctorId}`);
       }
     }
     
@@ -96,7 +98,6 @@ router.put('/:id/assign', protect, async (req, res) => {
     
     if (!emergency) return res.status(404).json({ message: 'Emergency case not found' });
     
-    // Notify doctor with User._id
     if (userDoctorId) {
       await createNotification(userDoctorId, 'Emergency Case Assigned', `You have been assigned to emergency case: ${emergency.condition}`, 'system');
     }

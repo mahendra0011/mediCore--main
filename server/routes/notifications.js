@@ -23,15 +23,16 @@ const getNotificationUserId = async (req) => {
 
 router.get('/', protect, async (req, res) => {
   try {
+    console.log(`[notifications GET] user._id=${req.user._id} role=${req.user.role}`);
     let filter = {};
     const effectiveUserId = await getNotificationUserId(req);
     if (effectiveUserId) filter.userId = effectiveUserId;
-    console.log(`[notifications] filter=${JSON.stringify(filter)}`);
+    console.log(`[notifications GET] effectiveUserId=${effectiveUserId} filter=`, filter);
     const notifications = await Notification.find(filter).sort({ createdAt: -1 });
-    console.log(`[notifications] found ${notifications.length} notifications`);
+    console.log(`[notifications GET] returning ${notifications.length} items`);
     res.json(notifications);
   } catch (err) { 
-    console.error('[notifications] error:', err);
+    console.error('[notifications GET] error:', err);
     res.status(500).json({ message: err.message }); 
   }
 });

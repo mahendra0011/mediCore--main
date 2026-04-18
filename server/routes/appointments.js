@@ -7,20 +7,24 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'appointment') => {
-  console.log(`[createNotification] userId=${userId} title=${title} type=${type}`);
+  console.log(`[createNotification] START userId=${userId} (type:${typeof userId}) title=${title}`);
   if (!userId) return;
   try {
     let finalUserId = userId.toString();
+    console.log(`[createNotification] after toString() finalUserId=${finalUserId}`);
     const doctor = await Doctor.findById(userId);
-    console.log(`[createNotification] Doctor.findById(${userId}) =>`, doctor ? `found user_id=${doctor.user_id}` : 'not found');
+    console.log(`[createNotification] Doctor.findById result:`, doctor ? `found _id=${doctor._id} user_id=${doctor.user_id}` : 'not found');
     if (doctor && doctor.user_id) {
       finalUserId = doctor.user_id;
+      console.log(`[createNotification] converted to user_id=${finalUserId}`);
+    } else {
+      console.log(`[createNotification] using original finalUserId (no conversion)`);
     }
-    console.log(`[createNotification] finalUserId=${finalUserId}`);
-    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: new Date().toISOString().split('T')[0] });
-    console.log(`[createNotification] created notification for userId=${finalUserId}`);
+    const now = new Date().toISOString().split('T')[0];
+    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: now });
+    console.log(`[createNotification] CREATED Notification with userId=${finalUserId} type=${type}`);
   } catch (err) {
-    console.error('[createNotification] error:', err);
+    console.error('[createNotification] ERROR:', err);
   }
 };
 
