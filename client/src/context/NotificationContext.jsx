@@ -12,20 +12,17 @@ export function NotificationProvider({ children }) {
     if (!user) { setCount(0); return; }
     try {
       const list = await api.getNotifications({});
-      // Backend already filters by role, just count unread
-      const unread = list.filter(n => !n.read).length;
+      const userId = (user._id || user.id)?.toString();
+      // Backend filters by role, but add client-side filter as backup
+      let filtered = list;
+      if (user.role !== 'admin') {
+        filtered = list.filter(n => n.userId === userId);
+      }
+      const unread = filtered.filter(n => !n.read).length;
       setCount(unread);
     } catch (e) { 
       console.error('Notification count error:', e);
-      // Fallback: try to filter client-side
-      try {
-        const userId = (user._id || user.id)?.toString();
-        let filtered = list;
-        if (user.role !== 'admin') {
-          filtered = list.filter(n => n.userId === userId);
-        }
-        setCount(filtered.filter(n => !n.read).length);
-      } catch (e2) { console.error(e2); }
+      setCount(0);
     }
   }, [user]);
 

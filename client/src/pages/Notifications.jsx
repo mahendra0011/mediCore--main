@@ -19,17 +19,16 @@ export default function Notifications() {
     setLoading(true);
     try {
       const data = await api.getNotifications({});
-      // Backend filters by role, use as-is
-      setNotifications(data);
-    } catch (e) { 
-      console.error(e);
-      // Fallback: filter client-side
-      const userId = user?._id || user?.id;
+      const userId = (user?._id || user?.id)?.toString();
+      // Backend filters by role, but add client-side filter as backup
       let filtered = data;
       if (user?.role !== 'admin') {
         filtered = data.filter(n => n.userId === userId);
       }
       setNotifications(filtered);
+    } catch (e) { 
+      console.error(e);
+      setNotifications([]);
     }
     setLoading(false);
   };
