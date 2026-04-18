@@ -103,24 +103,6 @@ Transaction ID: ${bill.transactionId || 'N/A'}
         <p className="text-muted-foreground">View invoices and payment history</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-card rounded-2xl border border-border/60 p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-success" /></div>
-            <p className="text-sm text-muted-foreground">Paid</p>
-          </div>
-          <p className="font-heading text-2xl font-bold text-success">Rs {summary.paid.toLocaleString()}</p>
-        </div>
-        <div className="bg-card rounded-2xl border border-border/60 p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center"><AlertCircle className="w-5 h-5 text-warning" /></div>
-            <p className="text-sm text-muted-foreground">Outstanding</p>
-          </div>
-          <p className="font-heading text-2xl font-bold text-warning">Rs {(summary.total - summary.paid).toLocaleString()}</p>
-        </div>
-      </div>
-
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -161,9 +143,6 @@ Transaction ID: ${bill.transactionId || 'N/A'}
                   <Button size="sm" variant="outline" onClick={() => downloadInvoice(bill)}>
                     <Download className="w-3.5 h-3.5 mr-1" /> Download
                   </Button>
-                  {bill.status !== 'Paid' && (
-                    <Button size="sm" onClick={() => handlePayBill(bill._id)}>Pay Now</Button>
-                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
