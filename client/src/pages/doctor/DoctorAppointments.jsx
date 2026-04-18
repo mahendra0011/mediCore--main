@@ -155,6 +155,7 @@ export default function DoctorAppointments() {
       const meds = prescriptionData.medications.filter(m => m.name.trim());
       await api.createRecord({
         patient: prescriptionData.patientName,
+        patientId: apt.patientId?._id || apt.patientId,
         doctor: prescriptionData.doctorName,
         diagnosis: prescriptionData.diagnosis,
         prescription: prescriptionData.medications.map(m => `${m.name} - ${m.dosage} - ${m.frequency} ${m.instructions ? `(${m.instructions})` : ''}`).join('\n'),
@@ -184,6 +185,7 @@ export default function DoctorAppointments() {
       const tests = labReportData.tests.filter(t => t.name.trim());
       await api.createRecord({
         patient: labReportData.patientName,
+        patientId: apt.patientId?._id || apt.patientId,
         doctor: labReportData.doctorName,
         diagnosis: 'Lab Report',
         prescription: '',
@@ -213,6 +215,7 @@ export default function DoctorAppointments() {
       const meds = dischargeData.medications.filter(m => m.name.trim());
       await api.createRecord({
         patient: dischargeData.patientName,
+        patientId: apt.patientId?._id || apt.patientId,
         doctor: dischargeData.doctorName,
         diagnosis: dischargeData.diagnosis,
         prescription: dischargeData.medications.map(m => `${m.name} - ${m.dosage} - ${m.frequency}`).join('\n'),
@@ -247,6 +250,7 @@ export default function DoctorAppointments() {
     try {
       await api.createBill({
         patient: apt.patient,
+        patientId: apt.patientId?._id || apt.patientId,
         doctor: user?.name,
         service: `${apt.type} - ${apt.department}`,
         amount: billAmount,
