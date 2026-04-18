@@ -95,7 +95,7 @@ router.post('/generate-prescription', async (req, res) => {
       });
       
       if (patientUser?._id) {
-        await createNotification(patientUser._id, 'New Prescription', `Dr. ${doctorName} has generated your prescription`, 'records');
+        await createNotification(patientUser._id.toString(), 'New Prescription', `Dr. ${doctorName} has generated your prescription`, 'records');
       }
     }
     
@@ -132,7 +132,7 @@ router.post('/generate-lab-report', async (req, res) => {
       });
       
       if (patientUser?._id) {
-        await createNotification(patientUser._id, 'Lab Report Ready', `Dr. ${doctorName} has generated your lab report`, 'records');
+        await createNotification(patientUser._id.toString(), 'Lab Report Ready', `Dr. ${doctorName} has generated your lab report`, 'records');
       }
     }
     
@@ -169,7 +169,7 @@ router.post('/generate-discharge-summary', async (req, res) => {
       });
       
       if (patientUser?._id) {
-        await createNotification(patientUser._id, 'Discharge Summary', `Dr. ${doctorName} has generated your discharge summary`, 'records');
+        await createNotification(patientUser._id.toString(), 'Discharge Summary', `Dr. ${doctorName} has generated your discharge summary`, 'records');
       }
     }
     

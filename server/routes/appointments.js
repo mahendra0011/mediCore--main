@@ -113,7 +113,7 @@ router.put('/:id', protect, async (req, res) => {
     if (status && status !== oldStatus) {
       const patientUser = await import('../models/User.js').then(m => m.default.findById(updated.patientId?._id));
       if (patientUser) {
-        await createNotification(patientUser._id, 'Appointment Update', `Your appointment status changed to ${status}`, 'appointment');
+        await createNotification(patientUser._id.toString(), 'Appointment Update', `Your appointment status changed to ${status}`, 'appointment');
       }
     }
     

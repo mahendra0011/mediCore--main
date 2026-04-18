@@ -99,7 +99,7 @@ router.post('/', protect, async (req, res) => {
     await record.populate('doctorId', 'name specialization');
     
     if (finalPatientId) {
-      await createNotification(finalPatientId, 'New Medical Record', `Dr. ${doctorName} has generated your ${type || 'record'}`, 'records');
+      await createNotification(finalPatientId.toString(), 'New Medical Record', `Dr. ${doctorName} has generated your ${type || 'record'}`, 'records');
     }
     
     res.status(201).json(record);

@@ -7,7 +7,13 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const filter = {};
-    if (req.query.userId) filter.userId = req.query.userId;
+    if (req.user.role === 'patient') {
+      filter.userId = req.user._id.toString();
+    } else if (req.user.role === 'doctor') {
+      filter.userId = req.user._id.toString();
+    } else {
+      if (req.query.userId) filter.userId = req.query.userId;
+    }
     const notifications = await Notification.find(filter).sort({ createdAt: -1 });
     res.json(notifications);
   } catch (err) { res.status(500).json({ message: err.message }); }

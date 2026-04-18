@@ -141,7 +141,7 @@ router.post('/', protect, async (req, res) => {
     });
     
     if (finalPatientId) {
-      await createNotification(finalPatientId, 'New Invoice', `Invoice ${invoiceId} of Rs ${amount} for ${service}`, 'payment');
+      await createNotification(finalPatientId.toString(), 'New Invoice', `Invoice ${invoiceId} of Rs ${amount} for ${service}`, 'payment');
     }
     
     res.status(201).json(bill);
@@ -163,7 +163,7 @@ router.post('/:id/pay', protect, async (req, res) => {
     
     await bill.save();
     
-    await createNotification(bill.patientId, 'Payment Successful', `Payment of Rs ${bill.amount} received for ${bill.invoiceId}`, 'payment');
+    await createNotification(bill.patientId?.toString(), 'Payment Successful', `Payment of Rs ${bill.amount} received for ${bill.invoiceId}`, 'payment');
     
     res.json(bill);
   } catch (err) { res.status(400).json({ message: err.message }); }
