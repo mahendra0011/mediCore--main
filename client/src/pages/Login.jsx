@@ -24,6 +24,7 @@ export default function Login() {
   const [role, setRole] = useState('admin');
   const [email, setEmail] = useState(demos.admin.email);
   const [password, setPassword] = useState('password');
+  const [secretKey, setSecretKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,6 +34,7 @@ export default function Login() {
     setRole(r);
     setEmail(demos[r].email);
     setPassword('password');
+    setSecretKey('');
     setError('');
   };
 
@@ -41,6 +43,11 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      if (role === 'admin' && secretKey !== 'medicore2580') {
+        setError('Invalid secret key for admin access');
+        setLoading(false);
+        return;
+      }
       await login(email, password, role);
       navigate('/dashboard');
     } catch (err) {
@@ -110,6 +117,12 @@ export default function Login() {
               <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
               <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
             </div>
+            {role === 'admin' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Secret Key</label>
+                <Input type="password" value={secretKey} onChange={e => setSecretKey(e.target.value)} placeholder="Enter secret key" required />
+              </div>
+            )}
             {error && <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>}
             <Button type="submit" className="w-full gap-2" size="lg" disabled={loading}>
               {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
