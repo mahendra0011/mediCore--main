@@ -52,14 +52,15 @@ export default function DoctorAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   const [rescheduleId, setRescheduleId] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [completeId, setCompleteId] = useState(null);
-  const [reportType, setReportType] = useState('Prescription');
   const [billModal, setBillModal] = useState(null);
   const [billAmount, setBillAmount] = useState(500);
   
+  // Record form states
   const [prescriptionData, setPrescriptionData] = useState(initialPrescriptionData);
   const [labReportData, setLabReportData] = useState(initialLabReportData);
   const [dischargeData, setDischargeData] = useState(initialDischargeData);
