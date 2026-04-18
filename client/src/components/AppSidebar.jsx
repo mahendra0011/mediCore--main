@@ -6,6 +6,7 @@ import {
   Home, Search, Star, Users, Shield, BarChart3, Bell, Building2, Clock, DollarSign, FileUp, Download, TestTube, AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const navConfig = {
   admin: [
@@ -91,6 +92,8 @@ export default function AppSidebar() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+              <NotificationBell className="!static !transform-none !w-auto !h-auto !p-0 !bg-transparent" />
+            </div>
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize ${roleBadgeColor[user.role] || 'bg-muted text-muted-foreground'}`}>
                 {user.role}
               </span>
