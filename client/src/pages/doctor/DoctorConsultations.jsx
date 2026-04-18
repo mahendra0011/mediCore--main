@@ -14,19 +14,25 @@ export default function DoctorConsultations() {
   const [patientName, setPatientName] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
   const [prescription, setPrescription] = useState('');
-  const [recordType, setRecordType] = useState('Diagnosis');
+  const [recordType, setRecordType] = useState('Prescription');
   const [notes, setNotes] = useState('');
+  const [chiefComplaints, setChiefComplaints] = useState('');
+  const [advice, setAdvice] = useState('');
+  const [followUp, setFollowUp] = useState('');
 
   const loadRecords = async () => {
     setLoading(true);
     try {
       const data = await api.getRecords();
-      setRecords(data.filter(r => r.doctor === user?.name));
+      const recordsArray = data?.records || data || [];
+      setRecords(recordsArray.filter(r => 
+        r.doctor?.toLowerCase().includes(user?.name?.toLowerCase())
+      ));
     } catch (e) { console.error(e); }
     setLoading(false);
   };
 
-  useEffect(() => { loadRecords(); }, []);
+  useEffect(() => { loadRecords(); }, [user?.name]);
 
   const handleSave = async () => {
     if (!patientName || !diagnosis) return;
@@ -39,8 +45,19 @@ export default function DoctorConsultations() {
         prescription,
         type: recordType,
         notes,
+        data: {
+          patient: { name: patientName },
+          chiefComplaints,
+          diagnosis,
+          medications: prescription.split('\n').filter(m => m.trim()),
+          advice,
+          followUp,
+          date: new Date().toISOString().split('T')[0],
+        },
       });
-      setShowForm(false); setPatientName(''); setDiagnosis(''); setPrescription(''); setNotes('');
+      setShowForm(false); 
+      setPatientName(''); setDiagnosis(''); setPrescription(''); setNotes('');
+      setChiefComplaints(''); setAdvice(''); setFollowUp('');
       loadRecords();
     } catch (e) { console.error(e); }
   };
@@ -99,7 +116,7 @@ export default function DoctorConsultations() {
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-2xl border border-border w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+            className="bg-card rounded-2xl border border-border w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">New Consultation Record</h3>
             <div className="space-y-4">
               <div>
@@ -109,7 +126,7 @@ export default function DoctorConsultations() {
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Type</label>
                 <div className="flex gap-2">
-                  {['Diagnosis', 'Prescription', 'Lab Report'].map(t => (
+                  {['Prescription', 'Lab Report', 'Diagnosis'].map(t => (
                     <button key={t} onClick={() => setRecordType(t)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${recordType === t ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
                       {t}
@@ -118,12 +135,16 @@ export default function DoctorConsultations() {
                 </div>
               </div>
               <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Chief Complaints</label>
+                <Input value={chiefComplaints} onChange={e => setChiefComplaints(e.target.value)} placeholder="What brings the patient in..." />
+              </div>
+              <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Diagnosis</label>
                 <Input value={diagnosis} onChange={e => setDiagnosis(e.target.value)} placeholder="Diagnosis..." />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Prescription</label>
-                <textarea value={prescription} onChange={e => setPrescription(e.target.value)} placeholder="Prescription details..."
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Medications (one per line)</label>
+                <textarea value={prescription} onChange={e => setPrescription(e.target.value)} placeholder="Medicine 1 - dosage&#10;Medicine 2 - dosage..."
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-20" />
               </div>
               <div>
