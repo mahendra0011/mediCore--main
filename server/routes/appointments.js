@@ -2,27 +2,38 @@ import express from 'express';
 import Appointment from '../models/Appointment.js';
 import Notification from '../models/Notification.js';
 import Doctor from '../models/Doctor.js';
+import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'appointment') => {
-  console.log(`[createNotification] START userId=${userId} (type:${typeof userId}) title=${title}`);
+  console.log(`[createNotification] START userId=${userId} title=${title}`);
   if (!userId) return;
   try {
     let finalUserId = userId.toString();
-    console.log(`[createNotification] after toString() finalUserId=${finalUserId}`);
     const doctor = await Doctor.findById(userId);
-    console.log(`[createNotification] Doctor.findById result:`, doctor ? `found _id=${doctor._id} user_id=${doctor.user_id}` : 'not found');
-    if (doctor && doctor.user_id) {
-      finalUserId = doctor.user_id;
-      console.log(`[createNotification] converted to user_id=${finalUserId}`);
+    if (doctor) {
+      if (doctor.user_id) {
+        finalUserId = doctor.user_id;
+        console.log(`[createNotification] Doctor found, using user_id=${finalUserId}`);
+      } else {
+        // Fallback: find User by email to get correct userId
+        const user = await User.findOne({ email: doctor.email, role: 'doctor' });
+        if (user) {
+          finalUserId = user._id.toString();
+          // Update doctor record for future
+          await Doctor.findByIdAndUpdate(doctor._id, { user_id: user._id });
+          console.log(`[createNotification] Doctor missing user_id; fixed via User lookup. finalUserId=${finalUserId}`);
+        } else {
+          console.log(`[createNotification] Doctor found but no matching User; keeping original ID`);
+        }
+      }
     } else {
-      console.log(`[createNotification] using original finalUserId (no conversion)`);
+      console.log(`[createNotification] No doctor found for userId=${userId}`);
     }
-    const now = new Date().toISOString().split('T')[0];
-    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: now });
-    console.log(`[createNotification] CREATED Notification with userId=${finalUserId} type=${type}`);
+    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: new Date().toISOString().split('T')[0] });
+    console.log(`[createNotification] CREATED Notification userId=${finalUserId}`);
   } catch (err) {
     console.error('[createNotification] ERROR:', err);
   }

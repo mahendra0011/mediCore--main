@@ -80,9 +80,21 @@ router.put('/:id/assign', protect, async (req, res) => {
     if (doctorId) {
       const doctor = await Doctor.findById(doctorId);
       console.log(`[emergency assign] Doctor.findById(${doctorId}):`, doctor ? `found user_id=${doctor.user_id}` : 'not found');
-      if (doctor && doctor.user_id) {
-        userDoctorId = doctor.user_id;
-        console.log(`[emergency assign] converted to User._id: ${userDoctorId}`);
+      if (doctor) {
+        if (doctor.user_id) {
+          userDoctorId = doctor.user_id;
+          console.log(`[emergency assign] using existing user_id=${userDoctorId}`);
+        } else {
+          // Fallback: find User by email and link
+          const user = await User.findOne({ email: doctor.email, role: 'doctor' });
+          if (user) {
+            userDoctorId = user._id.toString();
+            await Doctor.findByIdAndUpdate(doctor._id, { user_id: user._id });
+            console.log(`[emergency assign] doctor missing user_id; fixed via User lookup, userDoctorId=${userDoctorId}`);
+          } else {
+            console.log(`[emergency assign] doctor found but no matching User; keeping doctorId`);
+          }
+        }
       }
     }
     
