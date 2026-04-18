@@ -19,7 +19,7 @@ export function NotificationProvider({ children }) {
 
   useEffect(() => {
     refreshCount();
-    const interval = setInterval(refreshCount, 15000);
+    const interval = setInterval(refreshCount, 5000);
     return () => clearInterval(interval);
   }, [refreshCount]);
 
