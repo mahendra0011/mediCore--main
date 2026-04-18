@@ -13,7 +13,7 @@ const getNotificationUserId = async (req) => {
     return req.query.userId || null; // admin sees all or filtered
   }
   if (role === 'doctor') {
-    const doctor = await Doctor.findById(rawId);
+    const doctor = await Doctor.findOne({ user_id: rawId });
     return (doctor && doctor.user_id) ? doctor.user_id : rawId;
   }
   // patient
