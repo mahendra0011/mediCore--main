@@ -8,14 +8,15 @@ const router = express.Router();
 const getNotificationUserId = async (req) => {
   const role = req.user.role;
   const rawId = req.user._id.toString();
-  console.log('[getNotificationUserId] role:', role, 'rawId:', rawId);
+  console.log(`[notifications] role=${role} rawId=${rawId}`);
   if (role === 'admin') {
     return req.query.userId || null;
   }
   if (role === 'doctor') {
     const doctor = await Doctor.findOne({ user_id: rawId });
-    console.log('[getNotificationUserId] found doctor:', doctor ? doctor._id.toString() : 'none');
-    return (doctor && doctor.user_id) ? doctor.user_id : rawId;
+    const eff = (doctor && doctor.user_id) ? doctor.user_id : rawId;
+    console.log(`[notifications] doctorFound=${!!doctor} doctorUser_id=${doctor?.user_id} effectiveUserId=${eff}`);
+    return eff;
   }
   return rawId;
 };
@@ -25,8 +26,14 @@ router.get('/', protect, async (req, res) => {
     let filter = {};
     const effectiveUserId = await getNotificationUserId(req);
     if (effectiveUserId) filter.userId = effectiveUserId;
-    res.json(await Notification.find(filter).sort({ createdAt: -1 }));
-  } catch (err) { res.status(500).json({ message: err.message }); }
+    console.log(`[notifications] filter=${JSON.stringify(filter)}`);
+    const notifications = await Notification.find(filter).sort({ createdAt: -1 });
+    console.log(`[notifications] found ${notifications.length} notifications`);
+    res.json(notifications);
+  } catch (err) { 
+    console.error('[notifications] error:', err);
+    res.status(500).json({ message: err.message }); 
+  }
 });
 
 router.get('/unread-count', protect, async (req, res) => {

@@ -7,20 +7,20 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'appointment') => {
-  console.log('[createNotification] input userId:', userId, 'type:', type);
+  console.log(`[createNotification] userId=${userId} title=${title} type=${type}`);
   if (!userId) return;
   try {
     let finalUserId = userId.toString();
     const doctor = await Doctor.findById(userId);
-    console.log('[createNotification] Doctor.findById result:', doctor ? doctor._id.toString() + ' user_id:' + doctor.user_id : 'not found');
+    console.log(`[createNotification] Doctor.findById(${userId}) =>`, doctor ? `found user_id=${doctor.user_id}` : 'not found');
     if (doctor && doctor.user_id) {
       finalUserId = doctor.user_id;
     }
-    console.log('[createNotification] finalUserId:', finalUserId);
+    console.log(`[createNotification] finalUserId=${finalUserId}`);
     await Notification.create({ title, message, type, read: false, userId: finalUserId, date: new Date().toISOString().split('T')[0] });
-    console.log('Notification created successfully');
+    console.log(`[createNotification] created notification for userId=${finalUserId}`);
   } catch (err) {
-    console.error('Error creating notification:', err);
+    console.error('[createNotification] error:', err);
   }
 };
 
