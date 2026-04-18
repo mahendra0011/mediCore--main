@@ -20,7 +20,13 @@ export default function Notifications() {
     try {
       const data = await api.getNotifications({});
       const userId = user?._id || user?.id;
-      const myNotifications = data.filter(n => n.userId === userId);
+      // Admin sees all notifications, others filter by userId
+      let myNotifications;
+      if (user?.role === 'admin') {
+        myNotifications = data;
+      } else {
+        myNotifications = data.filter(n => n.userId === userId);
+      }
       setNotifications(myNotifications);
     } catch (e) { console.error(e); }
     setLoading(false);

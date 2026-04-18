@@ -12,9 +12,14 @@ export function NotificationProvider({ children }) {
     if (!user) { setCount(0); return; }
     try {
       const list = await api.getNotifications({});
-      // Get user ID - handle both _id and id formats
-      const userId = user._id || user.id;
-      const myNotifications = list.filter(n => n.userId === userId);
+      const userId = (user._id || user.id)?.toString();
+      // Admin sees all notifications, others filter by their userId
+      let myNotifications;
+      if (user.role === 'admin') {
+        myNotifications = list; // Show all for admin
+      } else {
+        myNotifications = list.filter(n => n.userId === userId);
+      }
       const unread = myNotifications.filter(n => !n.read).length;
       setCount(unread);
     } catch (e) { console.error('Notification count error:', e); }
