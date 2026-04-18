@@ -11,17 +11,24 @@ export function NotificationProvider({ children }) {
   const refreshCount = useCallback(async () => {
     if (!user) { setCount(0); return; }
     try {
+      console.log('User object:', user);
+      console.log('User role:', user.role);
       const list = await api.getNotifications({});
-      const unread = list.filter(n => !n.read).length;
+      console.log('All notifications:', list.length);
+      const myNotifications = list.filter(n => n.userId === user._id || n.userId === user.id);
+      console.log('My notifications:', myNotifications.length);
+      const unread = myNotifications.filter(n => !n.read).length;
       setCount(unread);
     } catch (e) { console.error('Notification count error:', e); }
   }, [user]);
 
   useEffect(() => {
-    refreshCount();
-    const interval = setInterval(refreshCount, 5000);
-    return () => clearInterval(interval);
-  }, [refreshCount]);
+    if (user) {
+      refreshCount();
+      const interval = setInterval(refreshCount, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user, refreshCount]);
 
   return (
     <NotificationContext.Provider value={{ count, refreshCount }}>

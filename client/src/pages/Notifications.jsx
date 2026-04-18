@@ -19,7 +19,9 @@ export default function Notifications() {
     setLoading(true);
     try {
       const data = await api.getNotifications({});
-      setNotifications(data);
+      // Filter to show only current user's notifications
+      const myNotifications = data.filter(n => n.userId === user?._id || n.userId === user?.id);
+      setNotifications(myNotifications);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
