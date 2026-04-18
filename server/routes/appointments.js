@@ -20,20 +20,15 @@ router.get('/', protect, async (req, res) => {
     if (req.user.role === 'patient') {
       filter.patientId = req.user._id;
     } else if (req.user.role === 'doctor') {
-      // Match by doctorId OR by doctor name (for backward compatibility)
-      filter.$or = [
-        { doctorId: req.user._id },
-        { doctor: new RegExp(req.user.name, 'i') }
-      ];
-      delete filter.doctorId;
+      // Match appointments where doctor name matches current doctor's name
+      filter.doctor = new RegExp(req.user.name, 'i');
     }
     
-    if (search) filter.$or = filter.$or || [];
-    filter.$or.push(
-      { patient: new RegExp(search, 'i') },
-      { doctor: new RegExp(search, 'i') },
-      { department: new RegExp(search, 'i') },
-    );
+    if (search && req.user.role === 'doctor') {
+      filter.$or = [
+        { patient: new RegExp(search, 'i') },
+      ];
+    }
     
     const appointments = await Appointment.find(filter)
       .populate('patientId', 'name email phone')
@@ -51,11 +46,8 @@ router.get('/my-appointments', protect, async (req, res) => {
     if (req.user.role === 'patient') {
       filter.patientId = req.user._id;
     } else if (req.user.role === 'doctor') {
-      // Match by doctorId OR by doctor name (for backward compatibility)
-      filter.$or = [
-        { doctorId: req.user._id },
-        { doctor: new RegExp(req.user.name, 'i') }
-      ];
+      // Match by doctor name
+      filter.doctor = new RegExp(req.user.name, 'i');
     }
     
     if (status && status !== 'All') filter.status = status;
