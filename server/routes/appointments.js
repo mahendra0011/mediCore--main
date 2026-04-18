@@ -6,7 +6,7 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'appointment') => {
-  await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
+  await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
 };
 
 router.get('/', protect, async (req, res) => {
@@ -92,6 +92,11 @@ router.post('/', protect, async (req, res) => {
     
     await appointment.populate('doctorId', 'name specialization');
     
+    // Notify doctor about new appointment
+    if (doctorId) {
+      await createNotification(doctorId, 'New Appointment', `New ${type || 'Consultation'} appointment from ${patientName} for ${date} at ${time}`, 'appointment');
+    }
+    
     res.status(201).json(appointment);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
@@ -114,6 +119,10 @@ router.put('/:id', protect, async (req, res) => {
       const patientUser = await import('../models/User.js').then(m => m.default.findById(updated.patientId?._id));
       if (patientUser) {
         await createNotification(patientUser._id.toString(), 'Appointment Update', `Your appointment status changed to ${status}`, 'appointment');
+      }
+      // Notify doctor
+      if (updated.doctorId) {
+        await createNotification(updated.doctorId._id.toString(), 'Appointment Update', `Appointment with ${updated.patient} status changed to ${status}`, 'appointment');
       }
     }
     

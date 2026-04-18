@@ -1,9 +1,21 @@
 import express from 'express';
 import Emergency from '../models/Emergency.js';
+import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
+
+const createNotification = async (userId, title, message, type = 'system') => {
+  await Notification.create({ 
+    title, 
+    message, 
+    type, 
+    read: false, 
+    userId: userId.toString(), 
+    date: new Date().toISOString().split('T')[0] 
+  });
+};
 
 router.get('/', protect, async (req, res) => {
   try {
@@ -42,6 +54,12 @@ router.post('/', protect, async (req, res) => {
       status: 'Pending'
     });
     
+    // Notify all admins about new emergency
+    const admins = await User.find({ role: 'admin' });
+    for (const admin of admins) {
+      await createNotification(admin._id, 'New Emergency Case', `${severity || 'Serious'} emergency: ${condition}`, 'system');
+    }
+    
     res.status(201).json(emergency);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
@@ -61,6 +79,11 @@ router.put('/:id/assign', protect, async (req, res) => {
     );
     
     if (!emergency) return res.status(404).json({ message: 'Emergency case not found' });
+    
+    // Notify the doctor
+    if (doctorId) {
+      await createNotification(doctorId, 'Emergency Case Assigned', `You have been assigned to emergency case: ${emergency.condition}`, 'system');
+    }
     
     res.json(emergency);
   } catch (err) { res.status(400).json({ message: err.message }); }

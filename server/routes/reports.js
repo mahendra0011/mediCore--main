@@ -66,7 +66,7 @@ const findPatientByName = async (name) => {
 
 const createNotification = async (userId, title, message, type = 'records') => {
   if (userId) {
-    await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
+    await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
   }
 };
 

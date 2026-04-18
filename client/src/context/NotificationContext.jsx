@@ -11,12 +11,10 @@ export function NotificationProvider({ children }) {
   const refreshCount = useCallback(async () => {
     if (!user) { setCount(0); return; }
     try {
-      console.log('User object:', user);
-      console.log('User role:', user.role);
       const list = await api.getNotifications({});
-      console.log('All notifications:', list.length);
-      const myNotifications = list.filter(n => n.userId === user._id || n.userId === user.id);
-      console.log('My notifications:', myNotifications.length);
+      // Get user ID - handle both _id and id formats
+      const userId = user._id || user.id;
+      const myNotifications = list.filter(n => n.userId === userId);
       const unread = myNotifications.filter(n => !n.read).length;
       setCount(unread);
     } catch (e) { console.error('Notification count error:', e); }

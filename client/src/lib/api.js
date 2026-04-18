@@ -80,6 +80,8 @@ const MOCK_NOTIFICATIONS = [
   { _id:'n3', title:'New Appointment', message:'Dr. Patel has confirmed your appointment', type:'appointment', read:false, date:'2024-03-13', userId:'3' },
   { _id:'n4', title:'Lab Results Ready', message:'Your lab results are now available in Medical Records', type:'records', read:true, date:'2024-03-12', userId:'3' },
   { _id:'n5', title:'System Update', message:'New features added to the platform', type:'system', read:false, date:'2024-03-16', userId:'1' },
+  { _id:'n6', title:'New Patient Appointment', message:'New appointment scheduled with John Doe', type:'appointment', read:false, date:'2024-03-16', userId:'2' },
+  { _id:'n7', title:'Payment Received', message:'Payment of Rs 500 received for consultation', type:'payment', read:true, date:'2024-03-15', userId:'2' },
 ];
 
 const MOCK_DEPARTMENTS = [
@@ -380,6 +382,20 @@ const mock = {
     await delay();
     if (userId) return store.notifications.filter(n => n.userId === userId);
     return store.notifications;
+  },
+  async getUnreadCount() {
+    await delay();
+    return { count: store.notifications.filter(n => !n.read).length };
+  },
+  async markAllRead() {
+    await delay();
+    store.notifications.forEach(n => n.read = true);
+    return { message: 'All notifications marked as read' };
+  },
+  async clearAllNotifications() {
+    await delay();
+    store.notifications = [];
+    return { message: 'All notifications cleared' };
   },
   async markNotificationRead(id) {
     await delay();
@@ -686,6 +702,9 @@ export const api = {
   deleteReview:  (id)      => dispatch(() => mock.deleteReview(id),                    `/reviews/${id}`,     { method:'DELETE' }),
 
   getNotifications:(p={})  => dispatch(() => mock.getNotifications(p),                 '/notifications?'     + new URLSearchParams(p)),
+  getUnreadCount:    ()      => dispatch(() => mock.getUnreadCount(),                   '/notifications/unread-count'),
+  markAllRead:       ()      => dispatch(() => mock.markAllRead(),                     '/notifications/mark-all-read', { method:'PUT' }),
+  clearAllNotifications:()  => dispatch(() => mock.clearAllNotifications(),             '/notifications/clear-all', { method:'DELETE' }),
   markNotificationRead:(id)=> dispatch(() => mock.markNotificationRead(id),            `/notifications/${id}/read`, { method:'PUT' }),
   createNotification:(body)=> dispatch(() => mock.createNotification(body),            '/notifications',     { method:'POST',   body: JSON.stringify(body) }),
   deleteNotification:(id)  => dispatch(() => mock.deleteNotification(id),              `/notifications/${id}`, { method:'DELETE' }),

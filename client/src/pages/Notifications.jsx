@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Calendar, CreditCard, FileText, Check, Trash2, AlertCircle } from 'lucide-react';
+import { Bell, Calendar, CreditCard, FileText, Check, Trash2, AlertCircle, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNotificationCount } from '@/context/NotificationContext';
 import { api } from '@/lib/api';
 
-const typeIcons = { reminder: Calendar, payment: CreditCard, appointment: Calendar, records: FileText };
-const typeColors = { reminder: 'bg-warning/10 text-warning', payment: 'bg-success/10 text-success', appointment: 'bg-info/10 text-info', records: 'bg-primary/10 text-primary' };
+const typeIcons = { reminder: Calendar, payment: CreditCard, appointment: Calendar, records: FileText, system: AlertCircle };
+const typeColors = { reminder: 'bg-warning/10 text-warning', payment: 'bg-success/10 text-success', appointment: 'bg-info/10 text-info', records: 'bg-primary/10 text-primary', system: 'bg-purple-500/10 text-purple-600' };
 
 export default function Notifications() {
   const { user } = useAuth();
@@ -19,14 +19,14 @@ export default function Notifications() {
     setLoading(true);
     try {
       const data = await api.getNotifications({});
-      // Filter to show only current user's notifications
-      const myNotifications = data.filter(n => n.userId === user?._id || n.userId === user?.id);
+      const userId = user?._id || user?.id;
+      const myNotifications = data.filter(n => n.userId === userId);
       setNotifications(myNotifications);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
 
-  useEffect(() => { loadNotifications(); }, []);
+  useEffect(() => { loadNotifications(); }, [user]);
 
   const handleMarkRead = async (id) => {
     try { 
@@ -36,9 +36,26 @@ export default function Notifications() {
     } catch (e) { console.error(e); }
   };
 
+  const handleMarkAllRead = async () => {
+    try {
+      await api.markAllRead();
+      loadNotifications();
+      refreshCount();
+    } catch (e) { console.error(e); }
+  };
+
   const handleDelete = async (id) => {
     try { 
       await api.deleteNotification(id); 
+      loadNotifications();
+      refreshCount();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleClearAll = async () => {
+    if (!confirm('Are you sure you want to delete all notifications?')) return;
+    try {
+      await api.clearAllNotifications();
       loadNotifications();
       refreshCount();
     } catch (e) { console.error(e); }
@@ -57,14 +74,18 @@ export default function Notifications() {
             {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
           </p>
         </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={async () => {
-            for (const n of notifications.filter(n => !n.read)) await api.markNotificationRead(n._id);
-            loadNotifications();
-          }}>
-            <Check className="w-4 h-4" /> Mark all read
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleMarkAllRead}>
+              <Check className="w-4 h-4" /> Mark all read
+            </Button>
+          )}
+          {notifications.length > 0 && (
+            <Button variant="outline" size="sm" className="gap-2 text-destructive hover:bg-destructive/10" onClick={handleClearAll}>
+              <Trash className="w-4 h-4" /> Clear all
+            </Button>
+          )}
+        </div>
       </div>
 
       {notifications.length === 0 ? (
