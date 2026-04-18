@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Pills, Microscope, Syringe, Ambulance, Check, Circle } from "lucide-react";
+import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Pills, Microscope, Syringe, Ambulance, Check, Circle, Facebook, Twitter, Instagram, Linkedin, Send, Droplets, TestTube, Thermometer, Xray } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
@@ -13,6 +14,15 @@ const fadeUp = {
     transition: { delay: i * 0.1, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
   })
 };
+
+const services = [
+  { icon: Thermometer, name: "Blood Pressure Check", price: "Rs 100" },
+  { icon: Droplets, name: "Blood Sugar Test", price: "Rs 150" },
+  { icon: TestTube, name: "Full Blood Count", price: "Rs 300" },
+  { icon: Xray, name: "X-Ray Scan", price: "Rs 500" },
+  { icon: HeartPulse, name: "ECG Test", price: "Rs 400" },
+  { icon: Microscope, name: "Thyroid Panel", price: "Rs 500" },
+];
 
 const specialties = [
   { icon: Stethoscope, name: "General Physician", color: "from-emerald-500", count: "45+" },
@@ -72,7 +82,7 @@ const Home = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
                 <Activity className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-heading text-xl font-bold">MediCore</span>
+              <span className="font-heading text-xl font-bold">MediCare</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href="#specialties" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Specialties</a>
@@ -104,9 +114,9 @@ const Home = () => {
               </motion.div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight">
-                MediCore
+                MediCare
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-violet-500">
-                  Premium Healthcare
+                  Healthcare Solutions
                 </span>
                 At Your Fingertips
               </h1>
@@ -315,17 +325,107 @@ const Home = () => {
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8 px-4 sm:px-6">
+{/* Footer */}
+      <footer className="bg-gradient-to-b from-background to-muted/30 border-t border-border/50 pt-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-primary-foreground" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {/* Brand & About */}
+            <div className="lg:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <span className="font-heading text-2xl font-bold">MediCare</span>
               </div>
-              <span className="font-heading text-base font-bold text-foreground">MediCore</span>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                Your trusted partner in healthcare innovation. We're committed to providing exceptional medical care with cutting-edge technology and compassionate service.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="w-4 h-4 text-primary" />
+                  <span>+91 8299431275</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="w-4 h-4 text-primary" />
+                  <span>hexagonsservices@gmail.com</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span>Lucknow, India</span>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">© 2026 MediCore. All rights reserved.</p>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-heading text-lg font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-3">
+                {["Home", "Doctors", "Services", "Contact", "Appointments", "Medical Records", "Billing", "Emergency"].map((link, i) => (
+                  <li key={link}>
+                    <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
+                      <ChevronRight className="w-3 h-3" /> {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Our Services */}
+            <div>
+              <h4 className="font-heading text-lg font-semibold mb-4">Our Services</h4>
+              <ul className="space-y-3">
+                {services.map((service, i) => (
+                  <li key={service.name}>
+                    <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center justify-between">
+                      <span className="flex items-center gap-2"><service.icon className="w-3 h-3 text-primary" /> {service.name}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 text-xs text-primary font-medium">{services[1].price}</div>
+            </div>
+
+            {/* Newsletter */}
+            <div>
+              <h4 className="font-heading text-lg font-semibold mb-4">Stay Connected</h4>
+              <p className="text-muted-foreground text-sm mb-4">
+                Subscribe for health tips, medical updates, and wellness insights delivered to your inbox.
+              </p>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Enter your email" 
+                  className="bg-background"
+                />
+                <Button size="icon" className="shrink-0">
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex items-center gap-4 mt-6">
+                {[Facebook, Twitter, Instagram, Linkedin].map((SocialIcon, i) => (
+                  <a 
+                    key={i}
+                    href="#" 
+                    className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-white flex items-center justify-center transition-all"
+                  >
+                    <SocialIcon className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Footer */}
+          <div className="border-t border-border/50 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">© 2026 MediCare Healthcare. All rights reserved.</p>
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
