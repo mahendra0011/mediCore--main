@@ -20,14 +20,20 @@ router.get('/', protect, async (req, res) => {
     if (req.user.role === 'patient') {
       filter.patientId = req.user._id;
     } else if (req.user.role === 'doctor') {
-      filter.doctorId = req.user._id;
+      // Match by doctorId OR by doctor name (for backward compatibility)
+      filter.$or = [
+        { doctorId: req.user._id },
+        { doctor: new RegExp(req.user.name, 'i') }
+      ];
+      delete filter.doctorId;
     }
     
-    if (search) filter.$or = [
+    if (search) filter.$or = filter.$or || [];
+    filter.$or.push(
       { patient: new RegExp(search, 'i') },
       { doctor: new RegExp(search, 'i') },
       { department: new RegExp(search, 'i') },
-    ];
+    );
     
     const appointments = await Appointment.find(filter)
       .populate('patientId', 'name email phone')
@@ -45,7 +51,11 @@ router.get('/my-appointments', protect, async (req, res) => {
     if (req.user.role === 'patient') {
       filter.patientId = req.user._id;
     } else if (req.user.role === 'doctor') {
-      filter.doctorId = req.user._id;
+      // Match by doctorId OR by doctor name (for backward compatibility)
+      filter.$or = [
+        { doctorId: req.user._id },
+        { doctor: new RegExp(req.user.name, 'i') }
+      ];
     }
     
     if (status && status !== 'All') filter.status = status;

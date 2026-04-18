@@ -39,7 +39,9 @@ export default function PatientDoctors() {
     try {
       const details = {
         patient: user.name,
+        patientId: user._id,
         doctor: selectedDoctor.name,
+        doctorId: selectedDoctor._id,
         department: selectedDoctor.specialization,
         date: bookingDate,
         time: bookingTime,
