@@ -20,13 +20,14 @@ export default function PatientRecords() {
   const loadRecords = async () => {
     setLoading(true);
     try {
-      const data = await api.getRecords({ patient: user?.name, search, type: typeFilter });
-      setRecords(data);
+      const data = await api.getRecords({ search, type: typeFilter });
+      const recordsArray = data?.records || data || [];
+      setRecords(recordsArray);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
 
-  useEffect(() => { loadRecords(); }, [search, typeFilter]);
+  useEffect(() => { loadRecords(); }, [user?.name, search, typeFilter]);
 
   const handleDownload = (rec) => {
     const content = `

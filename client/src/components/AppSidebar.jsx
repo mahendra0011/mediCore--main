@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, UserRound, Stethoscope, CalendarDays, FileText,
   CreditCard, Settings, ChevronLeft, ChevronRight, Activity, LogOut,
-  Home, Search, Star, Users, Shield, BarChart3, Bell, Building2, Clock, DollarSign, FileUp, Download
+  Home, Search, Star, Users, Shield, BarChart3, Bell, Building2, Clock, DollarSign, FileUp, Download, TestTube
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -40,6 +40,7 @@ const navConfig = {
     { icon: LayoutDashboard, label: 'Dashboard',         path: '/dashboard'            },
     { icon: Search,          label: 'Find Doctors',      path: '/patient/doctors'      },
     { icon: CalendarDays,    label: 'My Appointments',   path: '/patient/appointments' },
+    { icon: TestTube,       label: 'Lab Services',    path: '/patient/services'    },
     { icon: FileText,        label: 'Medical Records',   path: '/patient/records'      },
     { icon: FileUp,          label: 'Upload Files',     path: '/upload'              },
     { icon: Download,        label: 'My Reports',        path: '/patient/reports'      },
