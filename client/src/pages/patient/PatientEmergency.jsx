@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Phone, Clock, Activity, FileText, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Phone, Clock, Activity, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ export default function PatientEmergency() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ condition: '', severity: 'Serious', phone: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { loadMyEmergencies(); }, []);
 
@@ -26,16 +27,17 @@ export default function PatientEmergency() {
     setLoading(true);
     try {
       const list = await api.getEmergencies({ status: 'All' });
-      setMyCases(list.filter(e => e.patientId === user?._id || e.patientName === user?.name));
+      setMyCases((list || []).filter(e => e.patientId === user?._id || e.patientName === user?.name));
     } catch (e) { console.error(e); }
     setLoading(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await api.createEmergency({
-        patientName: user?.name,
+        patientName: user?.name || 'Patient',
         patientId: user?._id,
         condition: form.condition,
         severity: form.severity,
@@ -45,6 +47,7 @@ export default function PatientEmergency() {
       setForm({ condition: '', severity: 'Serious', phone: '' });
       loadMyEmergencies();
     } catch (e) { console.error(e); }
+    setSubmitting(false);
   };
 
   const activeCases = myCases.filter(c => !['Discharged', 'Transferred', 'Rejected'].includes(c.status));
@@ -63,7 +66,6 @@ export default function PatientEmergency() {
         </Button>
       </div>
 
-      {/* Emergency Contact */}
       <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4">
         <h3 className="font-semibold text-red-600 mb-2 flex items-center gap-2">
           <Phone className="w-4 h-4" /> Emergency Contacts
@@ -84,7 +86,6 @@ export default function PatientEmergency() {
         </div>
       </div>
 
-      {/* My Active Cases */}
       <div className="bg-card rounded-2xl border border-border/60 p-4">
         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
           <Activity className="w-4 h-4" /> My Emergency Cases
@@ -110,22 +111,13 @@ export default function PatientEmergency() {
                   </span>
                 </div>
                 <h4 className="font-medium text-foreground">{c.condition}</h4>
-                {c.assignedDoctorName && (
-                  <p className="text-sm text-blue-600 mt-2">👨‍⚕️ Doctor: {c.assignedDoctorName}</p>
-                )}
-                {c.notes?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/60">
-                    <p className="text-xs text-muted-foreground mb-1">Latest Note:</p>
-                    <p className="text-sm text-foreground">{c.notes[c.notes.length - 1]?.text}</p>
-                  </div>
-                )}
+                {c.assignedDoctorName && <p className="text-sm text-blue-600 mt-2">👨‍⚕️ Doctor: {c.assignedDoctorName}</p>}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Report Emergency Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -133,27 +125,28 @@ export default function PatientEmergency() {
             <h3 className="font-heading text-lg font-bold text-foreground mb-4">Report Emergency</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Condition/Emergency Type</label>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Condition</label>
                 <Input value={form.condition} onChange={e => setForm({ ...form, condition: e.target.value })} 
-                  placeholder="e.g. Chest pain, Accident, Severe bleeding" required />
+                  placeholder="e.g. Chest pain, Accident" required />
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Severity</label>
                 <select value={form.severity} onChange={e => setForm({ ...form, severity: e.target.value })}
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Critical">Critical - Life threatening</option>
-                  <option value="Serious">Serious - Needs immediate attention</option>
-                  <option value="Stable">Stable - Can wait</option>
+                  <option value="Critical">Critical</option>
+                  <option value="Serious">Serious</option>
+                  <option value="Stable">Stable</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Contact Phone</label>
-                <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} 
-                  placeholder="Your phone number" />
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Phone</label>
+                <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Your phone" />
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={() => setShowForm(false)}>Cancel</Button>
-                <Button type="submit" className="flex-1 bg-red-500 hover:bg-red-600">Submit Emergency</Button>
+                <Button type="submit" className="flex-1 bg-red-500 hover:bg-red-600" disabled={submitting}>
+                  {submitting ? 'Submitting...' : 'Submit Emergency'}
+                </Button>
               </div>
             </form>
           </motion.div>

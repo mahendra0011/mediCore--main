@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Users, Clock, Activity, Phone, UserPlus, Search, Filter, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Users, Clock, Activity, Phone, UserPlus, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -38,9 +37,9 @@ export default function AdminEmergency() {
     setLoading(true);
     try {
       const [em, doc] = await Promise.all([api.getEmergencies({ status: 'All' }), api.getDoctors()]);
-      setEmergencies(em);
-      setDoctors(doc);
-    } catch (e) { console.error(e); }
+      setEmergencies(em || []);
+      setDoctors(doc || []);
+    } catch (e) { console.error('Load error:', e); }
     setLoading(false);
   };
 
@@ -60,14 +59,13 @@ export default function AdminEmergency() {
 
   const stats = {
     total: emergencies.length,
-    critical: emergencies.filter(e => e.severity === 'Critical' && !['Discharged', 'Transferred'].includes(e.status)).length,
+    critical: emergencies.filter(e => e.severity === 'Critical' && !['Discharged', 'Transferred', 'Rejected'].includes(e.status)).length,
     pending: emergencies.filter(e => e.status === 'Pending').length,
     underTreatment: emergencies.filter(e => e.status === 'Under Treatment').length,
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground flex items-center gap-2">
@@ -78,12 +76,11 @@ export default function AdminEmergency() {
         <Button onClick={loadData} variant="outline" size="sm">Refresh</Button>
       </div>
 
-      {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className={`${stats.critical > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-card'}`}>
+        <Card className={stats.critical > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-card'}>
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Critical Cases</p>
+              <p className="text-sm text-muted-foreground">Critical</p>
               <p className="text-2xl font-bold text-red-600">{stats.critical}</p>
             </div>
             <AlertTriangle className="w-8 h-8 text-red-500/50" />
@@ -101,7 +98,7 @@ export default function AdminEmergency() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Under Treatment</p>
+              <p className="text-sm text-muted-foreground">Treatment</p>
               <p className="text-2xl font-bold text-foreground">{stats.underTreatment}</p>
             </div>
             <Activity className="w-8 h-8 text-blue-500/50" />
@@ -110,7 +107,7 @@ export default function AdminEmergency() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Cases</p>
+              <p className="text-sm text-muted-foreground">Total</p>
               <p className="text-2xl font-bold text-foreground">{stats.total}</p>
             </div>
             <Users className="w-8 h-8 text-muted-foreground/50" />
@@ -118,7 +115,6 @@ export default function AdminEmergency() {
         </Card>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-4">
         <div className="flex gap-1 bg-card rounded-xl border border-border/60 p-1">
           {['All', 'Pending', 'Assigned', 'Under Treatment', 'Stable', 'Discharged'].map(f => (
@@ -139,17 +135,14 @@ export default function AdminEmergency() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Cases List */}
         <div className="lg:col-span-2 space-y-3">
           {loading ? (
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
           ) : filteredCases.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border/60">
-              No emergency cases found
-            </div>
+            <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border border-border/60">No emergency cases</div>
           ) : (
             filteredCases.map((em, i) => (
-              <motion.div key={em._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              <motion.div key={em._id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 onClick={() => setSelectedCase(em)}
                 className={`bg-card rounded-xl border-2 p-4 cursor-pointer transition-all hover:shadow-md ${selectedCase?._id === em._id ? 'border-primary' : 'border-border/60'}`}>
                 <div className="flex items-start justify-between">
@@ -161,14 +154,11 @@ export default function AdminEmergency() {
                     </div>
                     <h3 className="font-semibold text-foreground">{em.condition}</h3>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1"><User className="w-3 h-3" />{em.patientName || 'Unknown'}</span>
+                      <span>{em.patientName || 'Unknown'}</span>
                       {em.age && <span>{em.age} yrs</span>}
                       {em.gender && <span>{em.gender}</span>}
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(em.createdAt).toLocaleTimeString()}</span>
                     </div>
-                    {em.assignedDoctorName && (
-                      <p className="text-sm text-blue-600 mt-2">👨‍⚕️ {em.assignedDoctorName}</p>
-                    )}
+                    {em.assignedDoctorName && <p className="text-sm text-blue-600 mt-2">👨‍⚕️ {em.assignedDoctorName}</p>}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {em.status === 'Pending' && (
@@ -184,7 +174,6 @@ export default function AdminEmergency() {
           )}
         </div>
 
-        {/* Details Panel */}
         <div className="bg-card rounded-2xl border border-border/60 p-4">
           <h3 className="font-semibold text-foreground mb-4">Case Details</h3>
           {selectedCase ? (
@@ -193,79 +182,27 @@ export default function AdminEmergency() {
                 <Badge className={`${severityColors[selectedCase.severity]?.bg} ${severityColors[selectedCase.severity]?.text}`}>{selectedCase.severity}</Badge>
                 <Badge className={`${statusColors[selectedCase.status]?.bg} ${statusColors[selectedCase.status]?.text}`}>{selectedCase.status}</Badge>
               </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">Patient</p>
-                  <p className="font-medium text-foreground">{selectedCase.patientName || 'Unknown'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Condition</p>
-                  <p className="font-medium text-foreground">{selectedCase.condition}</p>
-                </div>
-                {(selectedCase.age || selectedCase.gender) && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Details</p>
-                    <p className="font-medium text-foreground">{selectedCase.age || '-'} years, {selectedCase.gender || '-'}</p>
-                  </div>
-                )}
-                {selectedCase.phone && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="font-medium text-foreground flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {selectedCase.phone}
-                    </p>
-                  </div>
-                )}
-                {selectedCase.assignedDoctorName && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Assigned Doctor</p>
-                    <p className="font-medium text-foreground">👨‍⚕️ {selectedCase.assignedDoctorName}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs text-muted-foreground">Response Time</p>
-                  <p className="font-medium text-foreground">
-                    {selectedCase.responseTime ? `${selectedCase.responseTime} min` : 'Pending'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Created</p>
-                  <p className="font-medium text-foreground">{new Date(selectedCase.createdAt).toLocaleString()}</p>
-                </div>
-              </div>
-
-              {selectedCase.notes?.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Notes ({selectedCase.notes.length})</p>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {selectedCase.notes.map((n, i) => (
-                      <div key={i} className="bg-muted/30 rounded-lg p-2 text-sm">
-                        <p className="text-foreground">{n.text}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{n.doctorName} • {new Date(n.timestamp).toLocaleTimeString()}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div><p className="text-xs text-muted-foreground">Patient</p><p className="font-medium">{selectedCase.patientName || 'Unknown'}</p></div>
+              <div><p className="text-xs text-muted-foreground">Condition</p><p className="font-medium">{selectedCase.condition}</p></div>
+              {selectedCase.assignedDoctorName && <div><p className="text-xs text-muted-foreground">Doctor</p><p className="font-medium">👨‍⚕️ {selectedCase.assignedDoctorName}</p></div>}
+              <div><p className="text-xs text-muted-foreground">Created</p><p className="font-medium">{new Date(selectedCase.createdAt).toLocaleString()}</p></div>
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">Select a case to view details</p>
+            <p className="text-center text-muted-foreground py-8">Select a case</p>
           )}
         </div>
       </div>
 
-      {/* Assign Doctor Modal */}
       {assignModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setAssignModal(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             className="bg-card rounded-2xl border border-border w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Assign Doctor</h3>
+            <h3 className="font-heading text-lg font-bold mb-4">Assign Doctor</h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {doctors.map(doc => (
                 <button key={doc._id} onClick={() => handleAssignDoctor(assignModal._id, doc._id, doc.name)}
                   className="w-full p-3 rounded-xl border border-border/60 hover:border-primary hover:bg-primary/5 text-left transition-all">
-                  <p className="font-medium text-foreground">{doc.name}</p>
+                  <p className="font-medium">{doc.name}</p>
                   <p className="text-sm text-muted-foreground">{doc.specialization}</p>
                 </button>
               ))}

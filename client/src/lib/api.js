@@ -435,10 +435,12 @@ const mock = {
   MOCK_EMERGENCY: [
     { _id: 'em1', patientName: 'John Doe', condition: 'Cardiac Arrest', severity: 'Critical', status: 'Pending', createdAt: new Date() },
     { _id: 'em2', patientName: 'Jane Smith', condition: 'Road Accident', severity: 'Serious', status: 'Assigned', assignedDoctorName: 'Dr. Sharma', createdAt: new Date(Date.now() - 3600000) },
+    { _id: 'em3', patientName: 'Mike Johnson', condition: 'Severe Bleeding', severity: 'Critical', status: 'Under Treatment', assignedDoctorName: 'Dr. Patel', createdAt: new Date(Date.now() - 7200000) },
+    { _id: 'em4', patientName: 'Sarah Williams', condition: 'Fracture', severity: 'Stable', status: 'Assigned', assignedDoctorName: 'Dr. Kumar', createdAt: new Date(Date.now() - 10800000) },
   ],
   async getEmergencies({ status, severity } = {}) {
     await delay();
-    let list = this.MOCK_EMERGENCY;
+    let list = [...this.MOCK_EMERGENCY];
     if (status && status !== 'All') list = list.filter(e => e.status === status);
     if (severity && severity !== 'All') list = list.filter(e => e.severity === severity);
     return list;
@@ -470,7 +472,7 @@ const mock = {
   },
   async getEmergencyStats() {
     await delay();
-    return { total: this.MOCK_EMERGENCY.length, critical: this.MOCK_EMERGENCY.filter(e => e.severity === 'Critical').length };
+    return { total: this.MOCK_EMERGENCY.length, critical: this.MOCK_EMERGENCY.filter(e => e.severity === 'Critical' && !['Discharged','Transferred','Rejected'].includes(e.status)).length };
   },
 
   // Payments
