@@ -27,6 +27,7 @@ import PatientBilling from './pages/patient/PatientBilling';
 import PatientPayment from './pages/patient/PatientPayment';
 import PatientReports from './pages/patient/PatientReports';
 import PatientServices from './pages/patient/PatientServices';
+import PatientDashboard from './pages/patient/PatientDashboard';
 
 // Doctor pages
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
@@ -69,7 +70,7 @@ function RoleDashboard() {
   const { user } = useAuth();
   if (user?.role === 'doctor') return <DoctorDashboard />;
   if (user?.role === 'admin') return <Dashboard />;
-  return <PatientDoctors />;
+  return <PatientDashboard />;
 }
 
 const App = () => (
