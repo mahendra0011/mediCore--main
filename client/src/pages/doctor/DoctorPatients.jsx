@@ -22,11 +22,16 @@ export default function DoctorPatients() {
     setLoading(true);
     try {
       const [a, p, r] = await Promise.all([
-        api.getAppointments({ doctor: user?.name }),
+        api.getAppointments(),
         api.getPatients(),
         api.getRecords(),
       ]);
-      setAppointments(a);
+      // Filter appointments for this doctor
+      const myAppointments = a?.filter(apt => 
+        apt.doctor?.toLowerCase().includes(user?.name?.toLowerCase()) ||
+        apt.doctorId?.name?.toLowerCase().includes(user?.name?.toLowerCase())
+      ) || [];
+      setAppointments(myAppointments);
       setPatients(p);
       setRecords(r);
     } catch (e) { console.error(e); }
