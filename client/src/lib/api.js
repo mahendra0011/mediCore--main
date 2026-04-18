@@ -75,13 +75,18 @@ const MOCK_REVIEWS = [
 ];
 
 const MOCK_NOTIFICATIONS = [
-  { _id:'n1', title:'Appointment Reminder', message:'Your appointment with Dr. Smith is tomorrow at 10:00 AM', type:'reminder', read:false, date:'2024-03-15', userId:'3' },
-  { _id:'n2', title:'Payment Received', message:'Payment of $350 has been received for INV-0001', type:'payment', read:true, date:'2024-03-14', userId:'3' },
-  { _id:'n3', title:'New Appointment', message:'Dr. Patel has confirmed your appointment', type:'appointment', read:false, date:'2024-03-13', userId:'3' },
-  { _id:'n4', title:'Lab Results Ready', message:'Your lab results are now available in Medical Records', type:'records', read:true, date:'2024-03-12', userId:'3' },
-  { _id:'n5', title:'System Update', message:'New features added to the platform', type:'system', read:false, date:'2024-03-16', userId:'1' },
-  { _id:'n6', title:'New Patient Appointment', message:'New appointment scheduled with John Doe', type:'appointment', read:false, date:'2024-03-16', userId:'2' },
-  { _id:'n7', title:'Payment Received', message:'Payment of Rs 500 received for consultation', type:'payment', read:true, date:'2024-03-15', userId:'2' },
+  // Admin notifications (userId '1' or similar)
+  { _id:'n1', title:'System Update', message:'New features added to the platform', type:'system', read:false, date:'2024-03-16', userId:'1' },
+  { _id:'n2', title:'New User Registered', message:'New patient John Doe has registered', type:'system', read:false, date:'2024-03-17', userId:'1' },
+  { _id:'n3', title:'Emergency Case', message:'Critical emergency case reported', type:'system', read:true, date:'2024-03-18', userId:'1' },
+  // Doctor notifications (userId '2' or similar)
+  { _id:'n4', title:'New Appointment', message:'New appointment scheduled with John Doe', type:'appointment', read:false, date:'2024-03-16', userId:'2' },
+  { _id:'n5', title:'Payment Received', message:'Payment of Rs 500 received for consultation', type:'payment', read:false, date:'2024-03-15', userId:'2' },
+  { _id:'n6', title:'Emergency Case Assigned', message:'You have been assigned to emergency case: Cardiac Arrest', type:'system', read:false, date:'2024-03-18', userId:'2' },
+  // Patient notifications (userId '3' or similar)
+  { _id:'n7', title:'Appointment Reminder', message:'Your appointment with Dr. Smith is tomorrow at 10:00 AM', type:'reminder', read:false, date:'2024-03-15', userId:'3' },
+  { _id:'n8', title:'Payment Received', message:'Payment of $350 has been received for INV-0001', type:'payment', read:true, date:'2024-03-14', userId:'3' },
+  { _id:'n9', title:'Lab Results Ready', message:'Your lab results are now available in Medical Records', type:'records', read:true, date:'2024-03-12', userId:'3' },
 ];
 
 const MOCK_DEPARTMENTS = [

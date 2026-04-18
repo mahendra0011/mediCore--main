@@ -83,6 +83,13 @@ export default function AppSidebar() {
         )}
       </div>
 
+      {/* Notification Bell - always visible when logged in */}
+      {user && (
+        <div className={`px-3 py-2 ${collapsed ? 'flex justify-center' : ''}`}>
+          <NotificationBell />
+        </div>
+      )}
+
       {/* User card */}
       {!collapsed && user && (
         <div className="mx-3 mt-3 p-3 bg-sidebar-accent/60 rounded-xl border border-sidebar-border/50">
