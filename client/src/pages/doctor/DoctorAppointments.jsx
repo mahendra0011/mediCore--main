@@ -259,7 +259,7 @@ export default function DoctorAppointments() {
       });
       await api.createNotification({
         title: 'New Invoice',
-        message: `New invoice of $${billAmount} generated for ${apt.type} - ${apt.department}`,
+        message: `New invoice of Rs ${billAmount} generated for ${apt.type} - ${apt.department}`,
         type: 'payment',
         userId: apt.patientId || apt.patient,
       });
@@ -739,7 +739,7 @@ export default function DoctorAppointments() {
                 <Input value={`${appointments.find(a => a._id === completeId)?.type || 'Consultation'} - ${appointments.find(a => a._id === completeId)?.department || ''}`} disabled />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Amount ($)</label>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Amount (Rs)</label>
                 <Input type="number" value={billAmount} onChange={e => setBillAmount(Number(e.target.value))} min={0} />
               </div>
             </div>

@@ -113,7 +113,7 @@ export default function AdminDepartments() {
               <div><label className="text-sm font-medium text-foreground mb-1.5 block">Department Head</label>
                 <Input value={form.head} onChange={e => setForm({ ...form, head: e.target.value })} placeholder="Dr. Name" />
               </div>
-              <div><label className="text-sm font-medium text-foreground mb-1.5 block">Fees Structure ($)</label>
+              <div><label className="text-sm font-medium text-foreground mb-1.5 block">Fees Structure (Rs)</label>
                 <Input type="number" value={form.fees_structure} onChange={e => setForm({ ...form, fees_structure: Number(e.target.value) })} placeholder="500" />
               </div>
               <div className="flex items-center gap-2">

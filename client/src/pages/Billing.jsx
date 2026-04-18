@@ -155,8 +155,8 @@ export default function Billing() {
                 <div><label className="text-sm font-medium mb-1.5 block">Patient</label><Input value={form.patient} onChange={e=>set('patient',e.target.value)} placeholder="Patient name" required /></div>
                 <div><label className="text-sm font-medium mb-1.5 block">Doctor</label><Input value={form.doctor} onChange={e=>set('doctor',e.target.value)} placeholder="Dr. Name" required /></div>
                 <div className="col-span-2"><label className="text-sm font-medium mb-1.5 block">Service</label><Input value={form.service} onChange={e=>set('service',e.target.value)} placeholder="e.g. Cardiology Consultation" required /></div>
-                <div><label className="text-sm font-medium mb-1.5 block">Amount ($)</label><Input type="number" value={form.amount} onChange={e=>set('amount',e.target.value)} placeholder="500" required /></div>
-                <div><label className="text-sm font-medium mb-1.5 block">Amount Paid ($)</label><Input type="number" value={form.paid} onChange={e=>set('paid',e.target.value)} placeholder="0" /></div>
+                <div><label className="text-sm font-medium mb-1.5 block">Amount (Rs)</label><Input type="number" value={form.amount} onChange={e=>set('amount',e.target.value)} placeholder="500" required /></div>
+                <div><label className="text-sm font-medium mb-1.5 block">Amount Paid (Rs)</label><Input type="number" value={form.paid} onChange={e=>set('paid',e.target.value)} placeholder="0" /></div>
                 <div><label className="text-sm font-medium mb-1.5 block">Invoice Date</label><Input type="date" value={form.date} onChange={e=>set('date',e.target.value)} required /></div>
                 <div><label className="text-sm font-medium mb-1.5 block">Due Date</label><Input type="date" value={form.dueDate} onChange={e=>set('dueDate',e.target.value)} /></div>
                 <div>
