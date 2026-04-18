@@ -104,14 +104,7 @@ Transaction ID: ${bill.transactionId || 'N/A'}
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card rounded-2xl border border-border/60 p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><IndianRupee className="w-5 h-5 text-primary" /></div>
-            <p className="text-sm text-muted-foreground">Total Billed</p>
-          </div>
-          <p className="font-heading text-2xl font-bold text-foreground">Rs {summary.total.toLocaleString()}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-card rounded-2xl border border-border/60 p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-success" /></div>

@@ -41,6 +41,7 @@ const navConfig = {
     { icon: Search,          label: 'Find Doctors',      path: '/patient/doctors'      },
     { icon: CalendarDays,    label: 'My Appointments',   path: '/patient/appointments' },
     { icon: TestTube,       label: 'Lab Services',    path: '/patient/services'    },
+    { icon: FileText,        label: 'Medical Records', path: '/patient/records'    },
     { icon: FileUp,          label: 'Upload Files',     path: '/upload'              },
     { icon: Download,        label: 'My Reports',        path: '/patient/reports'      },
     { icon: CreditCard,      label: 'My Billing',        path: '/patient/billing'      },
