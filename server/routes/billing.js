@@ -38,11 +38,16 @@ router.get('/', protect, async (req, res) => {
     const filter = {};
     
     if (req.user.role === 'patient') {
-      filter.patientId = req.user._id;
+      // Match by patientId OR by patient name (for backward compatibility)
+      filter.$or = [
+        { patientId: req.user._id },
+        { patient: new RegExp(req.user.name, 'i') }
+      ];
     }
     
     if (status && status !== 'All') filter.status = status;
-    if (search) filter.$or = [
+    if (search) filter.$or = filter.$or || [];
+    filter.$or.push(
       { patient: new RegExp(search, 'i') },
       { invoiceId: new RegExp(search, 'i') },
       { service: new RegExp(search, 'i') },
@@ -53,8 +58,12 @@ router.get('/', protect, async (req, res) => {
       .populate('doctorId', 'name specialization')
       .sort({ createdAt: -1 });
     
+    // Calculate totals for patient's bills
+    const patientFilter = req.user.role === 'patient' 
+      ? { $or: [{ patientId: req.user._id }, { patient: new RegExp(req.user.name, 'i') }] }
+      : {};
     const total = await Billing.aggregate([
-      { $match: req.user.role === 'patient' ? { patientId: req.user._id } : {} },
+      { $match: patientFilter },
       { $group: { _id: null, total: { $sum: '$amount' }, paid: { $sum: '$paid' } } }
     ]);
     
