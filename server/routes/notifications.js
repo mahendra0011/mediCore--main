@@ -1,36 +1,41 @@
 import express from 'express';
 import Notification from '../models/Notification.js';
+import Doctor from '../models/Doctor.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper: get the correct userId for notification filtering
+const getNotificationUserId = async (req) => {
+  const role = req.user.role;
+  const rawId = req.user._id.toString();
+  if (role === 'admin') {
+    return req.query.userId || null; // admin sees all or filtered
+  }
+  if (role === 'doctor') {
+    const doctor = await Doctor.findById(rawId);
+    return (doctor && doctor.user_id) ? doctor.user_id : rawId;
+  }
+  // patient
+  return rawId;
+};
+
 router.get('/', protect, async (req, res) => {
   try {
-    console.log('Notification request - Role:', req.user.role, 'UserID:', req.user._id, 'Full user:', req.user);
-    const filter = {};
-    // Admin sees all notifications (can filter by userId if provided)
-    // Doctor and Patient see only their own notifications
-    if (req.user.role !== 'admin') {
-      filter.userId = req.user._id.toString();
-      console.log('Filter for non-admin:', filter);
-    } else if (req.query.userId) {
-      filter.userId = req.query.userId;
-    }
-    const notifications = await Notification.find(filter).sort({ createdAt: -1 });
-    console.log('Found notifications:', notifications.length, notifications.map(n => ({ id: n._id, userId: n.userId, title: n.title })));
-    res.json(notifications);
+    let filter = {};
+    const effectiveUserId = await getNotificationUserId(req);
+    if (effectiveUserId) filter.userId = effectiveUserId;
+    res.json(await Notification.find(filter).sort({ createdAt: -1 }));
   } catch (err) { 
-    console.error('Notification error:', err);
     res.status(500).json({ message: err.message }); 
   }
 });
 
 router.get('/unread-count', protect, async (req, res) => {
   try {
-    const filter = { read: false };
-    if (req.user.role !== 'admin') {
-      filter.userId = req.user._id.toString();
-    }
+    let filter = { read: false };
+    const effectiveUserId = await getNotificationUserId(req);
+    if (effectiveUserId) filter.userId = effectiveUserId;
     const count = await Notification.countDocuments(filter);
     res.json({ count });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -38,10 +43,9 @@ router.get('/unread-count', protect, async (req, res) => {
 
 router.put('/mark-all-read', protect, async (req, res) => {
   try {
-    const filter = { read: false };
-    if (req.user.role !== 'admin') {
-      filter.userId = req.user._id.toString();
-    }
+    let filter = { read: false };
+    const effectiveUserId = await getNotificationUserId(req);
+    if (effectiveUserId) filter.userId = effectiveUserId;
     await Notification.updateMany(filter, { read: true });
     res.json({ message: 'All notifications marked as read' });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -70,10 +74,9 @@ router.delete('/:id', protect, async (req, res) => {
 
 router.delete('/clear-all', protect, async (req, res) => {
   try {
-    const filter = {};
-    if (req.user.role !== 'admin') {
-      filter.userId = req.user._id.toString();
-    }
+    let filter = {};
+    const effectiveUserId = await getNotificationUserId(req);
+    if (effectiveUserId) filter.userId = effectiveUserId;
     await Notification.deleteMany(filter);
     res.json({ message: 'All notifications cleared' });
   } catch (err) { res.status(500).json({ message: err.message }); }

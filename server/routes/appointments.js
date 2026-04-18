@@ -1,15 +1,23 @@
 import express from 'express';
 import Appointment from '../models/Appointment.js';
 import Notification from '../models/Notification.js';
+import Doctor from '../models/Doctor.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'appointment') => {
   console.log('Creating notification for userId:', userId, 'title:', title);
+  if (!userId) return;
   try {
-    await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
-    console.log('Notification created successfully');
+    let finalUserId = userId.toString();
+    // Convert Doctor._id to User._id if needed
+    const doctor = await Doctor.findById(userId);
+    if (doctor && doctor.user_id) {
+      finalUserId = doctor.user_id;
+    }
+    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: new Date().toISOString().split('T')[0] });
+    console.log('Notification created successfully for userId:', finalUserId);
   } catch (err) {
     console.error('Error creating notification:', err);
   }

@@ -2,6 +2,7 @@ import express from 'express';
 import Emergency from '../models/Emergency.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import Doctor from '../models/Doctor.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -74,10 +75,19 @@ router.put('/:id/assign', protect, async (req, res) => {
   try {
     const { doctorId, doctorName } = req.body;
     
+    // Frontend sends Doctor._id; convert to User._id for assignedDoctor (ref: User)
+    let userDoctorId = doctorId;
+    if (doctorId) {
+      const doctor = await Doctor.findById(doctorId);
+      if (doctor && doctor.user_id) {
+        userDoctorId = doctor.user_id;
+      }
+    }
+    
     const emergency = await Emergency.findByIdAndUpdate(
       req.params.id,
       {
-        assignedDoctor: doctorId,
+        assignedDoctor: userDoctorId,
         assignedDoctorName: doctorName,
         status: 'Assigned'
       },
@@ -86,9 +96,9 @@ router.put('/:id/assign', protect, async (req, res) => {
     
     if (!emergency) return res.status(404).json({ message: 'Emergency case not found' });
     
-    // Notify the doctor
-    if (doctorId) {
-      await createNotification(doctorId, 'Emergency Case Assigned', `You have been assigned to emergency case: ${emergency.condition}`, 'system');
+    // Notify the doctor using User._id
+    if (userDoctorId) {
+      await createNotification(userDoctorId, 'Emergency Case Assigned', `You have been assigned to emergency case: ${emergency.condition}`, 'system');
     }
     
     res.json(emergency);
