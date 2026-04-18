@@ -53,8 +53,8 @@ export const sendEmail = async ({ to, subject, text, html, attachments }) => {
 export const sendAppointmentReminder = async (appointment) => {
   const { patient, doctor, date, time } = appointment;
   
-  const subject = 'Appointment Reminder - DocQueue Hospital';
-  const text = `Dear ${patient.name},\n\nThis is a reminder for your appointment with Dr. ${doctor.name} on ${date} at ${time}.\n\nPlease arrive 15 minutes early.\n\nThank you,\nDocQueue Hospital`;
+  const subject = 'Appointment Reminder - MediCore Hospital';
+  const text = `Dear ${patient.name},\n\nThis is a reminder for your appointment with Dr. ${doctor.name} on ${date} at ${time}.\n\nPlease arrive 15 minutes early.\n\nThank you,\nMediCore Hospital`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -76,7 +76,7 @@ export const sendAppointmentReminder = async (appointment) => {
         </tr>
       </table>
       <p>Please arrive 15 minutes early.</p>
-      <p>Thank you,<br>DocQueue Hospital</p>
+      <p>Thank you,<br>MediCore Hospital</p>
     </div>
   `;
   
@@ -84,7 +84,7 @@ export const sendAppointmentReminder = async (appointment) => {
 };
 
 export const sendOTPEmail = async (email, otp) => {
-  const subject = 'Your OTP Verification - DocQueue Hospital';
+  const subject = 'Your OTP Verification - MediCore Hospital';
   const text = `Your OTP for verification is: ${otp}. This OTP will expire in 10 minutes.`;
   
   const html = `
@@ -103,15 +103,15 @@ export const sendOTPEmail = async (email, otp) => {
 };
 
 export const sendPrescriptionEmail = async (patient, prescription, pdfBuffer) => {
-  const subject = 'Your Prescription - DocQueue Hospital';
-  const text = `Dear ${patient.name},\n\nPlease find attached your prescription from Dr. ${prescription.doctorName}.\n\nThank you,\nDocQueue Hospital`;
+  const subject = 'Your Prescription - MediCore Hospital';
+  const text = `Dear ${patient.name},\n\nPlease find attached your prescription from Dr. ${prescription.doctorName}.\n\nThank you,\nMediCore Hospital`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Prescription</h2>
       <p>Dear <strong>${patient.name}</strong>,</p>
       <p>Please find attached your prescription from Dr. ${prescription.doctorName}.</p>
-      <p>Thank you,<br>DocQueue Hospital</p>
+      <p>Thank you,<br>MediCore Hospital</p>
     </div>
   `;
   
@@ -128,8 +128,8 @@ export const sendPrescriptionEmail = async (patient, prescription, pdfBuffer) =>
 };
 
 export const sendLabResultAlert = async (patient, report) => {
-  const subject = 'Lab Results Available - DocQueue Hospital';
-  const text = `Dear ${patient.name},\n\nYour lab results (Report ID: ${report.reportId}) are now available. Please log in to view or download them.\n\nThank you,\nDocQueue Hospital`;
+  const subject = 'Lab Results Available - MediCore Hospital';
+  const text = `Dear ${patient.name},\n\nYour lab results (Report ID: ${report.reportId}) are now available. Please log in to view or download them.\n\nThank you,\nMediCore Hospital`;
   
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -138,7 +138,7 @@ export const sendLabResultAlert = async (patient, report) => {
       <p>Your lab results are now available.</p>
       <p><strong>Report ID:</strong> ${report.reportId}</p>
       <p>Please log in to view or download your results.</p>
-      <p>Thank you,<br>DocQueue Hospital</p>
+      <p>Thank you,<br>MediCore Hospital</p>
     </div>
   `;
   
@@ -151,11 +151,11 @@ export const sendSMS = async (phone, message) => {
 };
 
 export const sendAppointmentReminderSMS = async (phone, patientName, doctorName, date, time) => {
-  const message = `Dear ${patientName}, reminder for your appointment with Dr. ${doctorName} on ${date} at ${time}. Please arrive 15 mins early. - DocQueue Hospital`;
+  const message = `Dear ${patientName}, reminder for your appointment with Dr. ${doctorName} on ${date} at ${time}. Please arrive 15 mins early. - MediCore Hospital`;
   return sendSMS(phone, message);
 };
 
 export const sendOTPSMS = async (phone, otp) => {
-  const message = `Your DocQueue OTP is: ${otp}. Valid for 10 minutes.`;
+  const message = `Your MediCore OTP is: ${otp}. Valid for 10 minutes.`;
   return sendSMS(phone, message);
 };
