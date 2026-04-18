@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, UserRound, Stethoscope, CalendarDays, FileText,
   CreditCard, Settings, ChevronLeft, ChevronRight, Activity, LogOut,
-  Home, Search, Star, Users, Shield, BarChart3, Bell, Building2, Clock, DollarSign, FileUp, Download, TestTube
+  Home, Search, Star, Users, Shield, BarChart3, Bell, Building2, Clock, DollarSign, FileUp, Download, TestTube, AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,6 +19,7 @@ const navConfig = {
     { icon: Building2,       label: 'Departments',      path: '/admin/departments'},
     { icon: Star,            label: 'Reviews',          path: '/admin/reviews'    },
     { icon: BarChart3,       label: 'Analytics',        path: '/admin/analytics'  },
+    { icon: AlertTriangle,  label: 'Emergency',        path: '/admin/emergency' },
     { icon: FileUp,          label: 'Import/Export',    path: '/import-export'    },
     { icon: Download,        label: 'Reports',          path: '/reports'          },
     { icon: Bell,            label: 'Notifications',    path: '/notifications'    },
@@ -33,6 +34,7 @@ const navConfig = {
     { icon: Download,        label: 'Reports',          path: '/reports'             },
     { icon: Star,            label: 'My Reviews',       path: '/doctor/reviews'      },
     { icon: DollarSign,      label: 'My Earnings',      path: '/doctor/earnings'     },
+    { icon: AlertTriangle,  label: 'Emergency',        path: '/doctor/emergency'   },
     { icon: Bell,            label: 'Notifications',    path: '/notifications'       },
     { icon: Settings,        label: 'Settings',         path: '/settings'            },
   ],

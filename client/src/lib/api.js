@@ -431,6 +431,48 @@ const mock = {
     return { message: 'Deleted' };
   },
 
+  // Emergency
+  MOCK_EMERGENCY: [
+    { _id: 'em1', patientName: 'John Doe', condition: 'Cardiac Arrest', severity: 'Critical', status: 'Pending', createdAt: new Date() },
+    { _id: 'em2', patientName: 'Jane Smith', condition: 'Road Accident', severity: 'Serious', status: 'Assigned', assignedDoctorName: 'Dr. Sharma', createdAt: new Date(Date.now() - 3600000) },
+  ],
+  async getEmergencies({ status, severity } = {}) {
+    await delay();
+    let list = this.MOCK_EMERGENCY;
+    if (status && status !== 'All') list = list.filter(e => e.status === status);
+    if (severity && severity !== 'All') list = list.filter(e => e.severity === severity);
+    return list;
+  },
+  async createEmergency(body) {
+    await delay();
+    const e = { _id: uid(), ...body, status: 'Pending', createdAt: new Date() };
+    this.MOCK_EMERGENCY.unshift(e);
+    return e;
+  },
+  async assignEmergencyDoctor(id, doctorId, doctorName) {
+    await delay();
+    const e = this.MOCK_EMERGENCY.find(e => e._id === id);
+    if (e) { e.assignedDoctor = doctorId; e.assignedDoctorName = doctorName; e.status = 'Assigned'; }
+    return e;
+  },
+  async updateEmergencyStatus(id, status) {
+    await delay();
+    const e = this.MOCK_EMERGENCY.find(e => e._id === id);
+    if (e) e.status = status;
+    return e;
+  },
+  async addEmergencyNote(id, text) {
+    await delay();
+    const e = this.MOCK_EMERGENCY.find(e => e._id === id);
+    if (e) e.notes = e.notes || [];
+    e.notes.push({ text, timestamp: new Date(), doctorName: 'Current Doctor' });
+    return e;
+  },
+  async getEmergencyStats() {
+    await delay();
+    return { total: this.MOCK_EMERGENCY.length, critical: this.MOCK_EMERGENCY.filter(e => e.severity === 'Critical').length };
+  },
+
   // Payments
   async getPayments({ status, patient_id } = {}) {
     await delay();
@@ -651,6 +693,13 @@ export const api = {
   createDepartment:(body)  => dispatch(() => mock.createDepartment(body),              '/departments',       { method:'POST',   body: JSON.stringify(body) }),
   updateDepartment:(id,b)  => dispatch(() => mock.updateDepartment(id,b),              `/departments/${id}`, { method:'PUT',    body: JSON.stringify(b) }),
   deleteDepartment:(id)    => dispatch(() => mock.deleteDepartment(id),                `/departments/${id}`, { method:'DELETE' }),
+
+  getEmergencies:     (p={})  => dispatch(() => mock.getEmergencies(p),                    '/emergency'),
+  createEmergency:   (body)  => dispatch(() => mock.createEmergency(body),                 '/emergency',         { method:'POST',   body: JSON.stringify(body) }),
+  assignEmergencyDoctor:(id,docId,docName)=> dispatch(() => mock.assignEmergencyDoctor(id,docId,docName), `/emergency/${id}/assign`, { method:'PUT', body: JSON.stringify({ doctorId: docId, doctorName: docName }) }),
+  updateEmergencyStatus:(id,status)=> dispatch(() => mock.updateEmergencyStatus(id,status),   `/emergency/${id}/status`, { method:'PUT', body: JSON.stringify({ status }) }),
+  addEmergencyNote:  (id,text)=> dispatch(() => mock.addEmergencyNote(id,text),              `/emergency/${id}/notes`, { method:'POST', body: JSON.stringify({ text }) }),
+  getEmergencyStats: ()      => dispatch(() => mock.getEmergencyStats(),                   '/emergency/stats'),
 
   getPayments:     (p={})  => dispatch(() => mock.getPayments(p),                      '/payments?'          + new URLSearchParams(p)),
   createPayment:   (body)  => dispatch(() => mock.createPayment(body),                 '/payments',          { method:'POST',   body: JSON.stringify(body) }),

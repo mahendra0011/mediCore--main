@@ -19,6 +19,7 @@ import reviewRoutes from './routes/reviews.js';
 import notificationRoutes from './routes/notifications.js';
 import reportRoutes from './routes/reports.js';
 import uploadRoutes from './routes/upload.js';
+import emergencyRoutes from './routes/emergency.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,6 +50,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/emergency', emergencyRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date() }));
 

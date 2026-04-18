@@ -37,6 +37,7 @@ import DoctorConsultations from './pages/doctor/DoctorConsultations';
 import DoctorReviews from './pages/doctor/DoctorReviews';
 import DoctorEarnings from './pages/doctor/DoctorEarnings';
 import DoctorSchedule from './pages/doctor/DoctorSchedule';
+import DoctorEmergency from './pages/doctor/DoctorEmergency';
 
 // Admin pages
 import AdminUsers from './pages/admin/AdminUsers';
@@ -44,6 +45,7 @@ import AdminDoctors from './pages/admin/AdminDoctors';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminReviews from './pages/admin/AdminReviews';
+import AdminEmergency from './pages/admin/AdminEmergency';
 import PDFReports from './pages/PDFReports';
 import ImportExport from './pages/ImportExport';
 import FileUpload from './pages/FileUpload';
@@ -100,6 +102,7 @@ const App = () => (
             <Route path="/admin/doctors" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><AdminDoctors /></DashboardPage></ProtectedRoute>} />
             <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><AdminAnalytics /></DashboardPage></ProtectedRoute>} />
             <Route path="/admin/departments" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><AdminDepartments /></DashboardPage></ProtectedRoute>} />
+            <Route path="/admin/emergency" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><AdminEmergency /></DashboardPage></ProtectedRoute>} />
             <Route path="/admin/reviews" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><AdminReviews /></DashboardPage></ProtectedRoute>} />
             <Route path="/doctors" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><Doctors /></DashboardPage></ProtectedRoute>} />
             <Route path="/patients" element={<ProtectedRoute allowedRoles={['admin']}><DashboardPage><Patients /></DashboardPage></ProtectedRoute>} />
@@ -127,6 +130,7 @@ const App = () => (
             <Route path="/doctor/reviews" element={<ProtectedRoute allowedRoles={['doctor']}><DashboardPage><DoctorReviews /></DashboardPage></ProtectedRoute>} />
             <Route path="/doctor/earnings" element={<ProtectedRoute allowedRoles={['doctor']}><DashboardPage><DoctorEarnings /></DashboardPage></ProtectedRoute>} />
             <Route path="/doctor/schedule" element={<ProtectedRoute allowedRoles={['doctor']}><DashboardPage><DoctorSchedule /></DashboardPage></ProtectedRoute>} />
+            <Route path="/doctor/emergency" element={<ProtectedRoute allowedRoles={['doctor']}><DashboardPage><DoctorEmergency /></DashboardPage></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
