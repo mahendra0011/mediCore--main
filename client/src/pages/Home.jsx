@@ -1,75 +1,66 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle } from "lucide-react";
+import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Pills, Microscope, Syringe, Ambulance, Check, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 50 },
   visible: i => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.12, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }
+    transition: { delay: i * 0.1, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
   })
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: i => ({
-    opacity: 1, scale: 1,
-    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" }
-  })
-};
-
-const float = {
-  animate: { y: [-15, 15, -15] }
-};
-
-const features = [
-  { icon: Stethoscope, title: "Doctor Management", desc: "Complete doctor profiles with specializations, schedules, and availability tracking", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-  { icon: UserRound, title: "Patient Records", desc: "Comprehensive patient history, medical records, and visit management", color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-  { icon: CalendarDays, title: "Smart Scheduling", desc: "Online appointment booking with calendar management and reminders", color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/20" },
-  { icon: FileText, title: "PDF Reports", desc: "Generate professional prescriptions, lab reports & discharge summaries", color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20" },
-  { icon: Mail, title: "Email & SMS", desc: "Automated appointment reminders, OTPs, and lab result notifications", color: "text-cyan-500", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
-  { icon: Image, title: "File Handling", desc: "Upload, compress, and validate X-rays, lab reports & prescriptions", color: "text-pink-500", bg: "bg-pink-500/10", border: "border-pink-500/20" },
-  { icon: FileUp, title: "Bulk Import", desc: "Import patients, doctors & billing data from Excel/CSV files", color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-  { icon: Download, title: "Export Data", desc: "Export reports and payment history in Excel or CSV format", color: "text-teal-500", bg: "bg-teal-500/10", border: "border-teal-500/20" },
-  { icon: CreditCard, title: "Billing & Payments", desc: "Generate invoices, track payments and manage revenue", color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" },
-  { icon: BarChart3, title: "Analytics", desc: "Real-time dashboard with insights and performance metrics", color: "text-indigo-500", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
-  { icon: Bell, title: "Notifications", desc: "Stay updated with appointment alerts and system notifications", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" },
-  { icon: Shield, title: "Secure & HIPAA", desc: "Enterprise-grade security with role-based access control", color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20" },
+const specialties = [
+  { icon: Stethoscope, name: "General Physician", color: "from-emerald-500", count: "45+" },
+  { icon: Baby, name: "Gynecologist", color: "from-pink-500", count: "32+" },
+  { icon: Heart, name: "Dermatologist", color: "from-rose-500", count: "28+" },
+  { icon: Brain, name: "Pediatricians", color: "from-violet-500", count: "25+" },
+  { icon: Eye, name: "Neurologist", color: "from-blue-500", count: "20+" },
+  { icon: Bone, name: "Gastroenterologist", color: "from-amber-500", count: "18+" },
 ];
 
-const stats = [
-  { value: "50K+", label: "Patients Served", icon: Users },
-  { value: "1,200+", label: "Healthcare Providers", icon: Stethoscope },
-  { value: "200K+", label: "Appointments", icon: CalendarDays },
-  { value: "99.9%", label: "System Uptime", icon: Cloud },
-];
-
-const testimonials = [
-  { name: "Dr. Sarah Johnson", role: "Chief Medical Officer", text: "This platform transformed how we manage patient records. The PDF generation alone saves hours every day.", avatar: "SJ" },
-  { name: "Mark Williams", role: "Hospital Administrator", text: "The bulk import feature helped us migrate 10,000+ patient records in just a few clicks. Incredible tool!", avatar: "MW" },
-  { name: "Emily Chen", role: "IT Director", text: "Security was our top concern. MediCore's role-based access and data encryption gave us full HIPAA compliance.", avatar: "EC" },
+const doctors = [
+  { name: "Dr. Richard James", specialty: "General Physician", available: true, rating: 4.9, patients: 1200 },
+  { name: "Dr. Emily Larson", specialty: "Gynecologist", available: true, rating: 4.8, patients: 980 },
+  { name: "Dr. Sarah Patel", specialty: "Dermatologist", available: true, rating: 4.9, patients: 850 },
+  { name: "Dr. Christopher Lee", specialty: "Pediatricians", available: true, rating: 4.7, patients: 720 },
+  { name: "Dr. Jennifer Garcia", specialty: "Neurologist", available: true, rating: 4.8, patients: 640 },
+  { name: "Dr. Andrew Williams", specialty: "Gastroenterologist", available: true, rating: 4.9, patients: 580 },
+  { name: "Dr. Christopher Davis", specialty: "General Physician", available: true, rating: 4.6, patients: 520 },
+  { name: "Dr. Timothy White", specialty: "Gynecologist", available: true, rating: 4.8, patients: 480 },
+  { name: "Dr. Ava Mitchell", specialty: "Dermatologist", available: true, rating: 4.7, patients: 420 },
+  { name: "Dr. Jeffrey King", specialty: "Pediatricians", available: true, rating: 4.9, patients: 380 },
 ];
 
 const Home = () => {
   const navigate = useNavigate();
+  const [doctorsList, setDoctorsList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getDoctors({ available: 'true' });
+        setDoctorsList(data?.slice(0, 6) || doctors.slice(0, 6));
+      } catch (e) {
+        setDoctorsList(doctors.slice(0, 6));
+      }
+    };
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {/* Gradient Orbs */}
         <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity }}
           className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl" />
         <motion.div animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 10, repeat: Infinity }}
           className="absolute top-1/3 -right-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-blue-500/20 to-transparent blur-3xl" />
-        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.35, 0.2] }} transition={{ duration: 12, repeat: Infinity }}
-          className="absolute -bottom-1/4 left-1/3 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-violet-500/20 to-transparent blur-3xl" />
-        
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.02]" 
-          style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
       </div>
 
       {/* Navbar */}
@@ -77,23 +68,23 @@ const Home = () => {
         className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
                 <Activity className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-heading text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">MediCore</span>
+              <span className="font-heading text-xl font-bold">MediCore</span>
             </div>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-              <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
-              <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Stats</a>
+            <div className="hidden md:flex items-center gap-6">
+              <a href="#specialties" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Specialties</a>
+              <a href="#doctors" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Top Doctors</a>
+              <a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</a>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={() => navigate("/login")} className="hidden sm:flex">
                 Sign In
               </Button>
               <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" onClick={() => navigate("/signup")}>
-                Get Started <ArrowRight className="w-4 h-4" />
+                Book Appointment <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -101,7 +92,7 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-28 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -109,250 +100,232 @@ const Home = () => {
               <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-blue-500/10 text-primary text-sm font-medium mb-6 border border-primary/20">
                 <Zap className="w-4 h-4 text-amber-500" />
-                <span>Trusted by 500+ Healthcare Facilities</span>
+                <span>Premium Healthcare at Your Fingertips</span>
               </motion.div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight">
-                Modern Healthcare{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-violet-500">
-                  Management
-                </span>{" "}
-                Made Simple
+                MediCore
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-violet-500">
+                  Premium Healthcare
+                </span>
+                At Your Fingertips
               </h1>
 
               <p className="text-lg sm:text-xl text-muted-foreground mt-6 leading-relaxed max-w-xl">
-                Streamline your hospital operations with our comprehensive HMS. 
-                From patient records to billing, PDF reports to bulk imports — all in one powerful platform.
+                Experience world-class healthcare from the comfort of your home. 
+                Book appointments with certified specialists, get instant consultations, 
+                and manage your health records securely.
               </p>
 
-              <div className="flex flex-wrap gap-4 mt-8">
-                <Button size="lg" className="gap-2 text-base px-8 h-14 shadow-xl shadow-primary/25" onClick={() => navigate("/signup")}>
-                  Start Free Trial <ArrowRight className="w-5 h-5" />
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 text-base px-8 h-14" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>
-                  <Play className="w-4 h-4" /> See Features
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-6 mt-10">
+              {/* Features badges */}
+              <div className="flex flex-wrap gap-3 mt-6">
                 {[
-                  { icon: CheckCircle, text: "No credit card required" },
-                  { icon: CheckCircle, text: "14-day free trial" },
-                  { icon: CheckCircle, text: "Cancel anytime" },
+                  { icon: Award, text: "Certified Specialists" },
+                  { icon: Clock, text: "24/7 Availability" },
+                  { icon: Shield, text: "Safe & Secure" },
+                  { icon: Users, text: "500+ Doctors" },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <item.icon className="w-4 h-4 text-green-500" />
-                    {item.text}
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full text-sm">
+                    <item.icon className="w-4 h-4 text-primary" />
+                    <span>{item.text}</span>
                   </div>
                 ))}
               </div>
-            </motion.div>
 
-            {/* Right Visual */}
-            <motion.div initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }} className="relative hidden lg:block">
-              {/* Floating Cards */}
-              <motion.div animate={float} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 left-10 z-20">
-                <Card className="bg-card/95 backdrop-blur-xl border shadow-2xl">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-green-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Patients Today</p>
-                      <p className="text-xs text-muted-foreground">+12% from yesterday</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div animate={float} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute top-32 right-0 z-10">
-                <Card className="bg-card/95 backdrop-blur-xl border shadow-2xl">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                      <CalendarDays className="w-5 h-5 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Appointments</p>
-                      <p className="text-xs text-muted-foreground">28 pending</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div animate={float} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                className="absolute bottom-10 left-20 z-30">
-                <Card className="bg-card/95 backdrop-blur-xl border shadow-2xl">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-violet-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Reports Generated</p>
-                      <p className="text-xs text-muted-foreground">156 this week</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Main Dashboard Preview */}
-              <div className="ml-16 rounded-2xl border border-border/60 bg-card shadow-2xl shadow-primary/5 overflow-hidden">
-                <div className="bg-muted/30 px-4 py-3 border-b border-border/40 flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-amber-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
-                </div>
-                <div className="p-6 bg-gradient-to-br from-muted/20 to-muted/40">
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: "Total Patients", value: "12,458", change: "+8%" },
-                      { label: "Doctors", value: "156", change: "+3" },
-                      { label: "Appointments", value: "2,341", change: "+12%" },
-                    ].map((stat, i) => (
-                      <div key={i} className="bg-card rounded-xl p-4 border">
-                        <p className="text-xs text-muted-foreground">{stat.label}</p>
-                        <p className="text-2xl font-bold">{stat.value}</p>
-                        <p className="text-xs text-green-500">{stat.change}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="flex flex-wrap gap-4 mt-8">
+                <Button size="lg" className="gap-2 text-base px-8 h-14 shadow-xl shadow-primary/25" onClick={() => navigate("/signup")}>
+                  Book Appointment Now <ArrowRight className="w-5 h-5" />
+                </Button>
+                <Button size="lg" variant="outline" className="gap-2 text-base px-8 h-14">
+                  <Phone className="w-4 h-4" /> Emergency Call
+                </Button>
               </div>
             </motion.div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section id="stats" className="py-20 px-4 sm:px-6 bg-gradient-to-b from-muted/30 to-transparent">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, i) => (
-              <motion.div key={stat.label} initial="hidden" whileInView="visible" variants={fadeUp}
-                viewport={{ once: true }} custom={i} className="text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
-                  <stat.icon className="w-7 h-7 text-primary" />
+            {/* Right - Hero Image with Doctor Cards */}
+            <motion.div initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }} className="relative hidden lg:block">
+              
+              {/* Main doctor image background */}
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary/20 via-blue-500/10 to-violet-500/10 p-8 min-h-[400px]">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { name: "Dr. Sarah Patel", specialty: "Dermatologist", patients: "2,500+", color: "bg-pink-500" },
+                    { name: "Dr. James Wilson", specialty: "Cardiologist", patients: "1,800+", color: "bg-red-500" },
+                    { name: "Dr. Emily Chen", specialty: "Pediatrician", patients: "1,200+", color: "bg-violet-500" },
+                    { name: "Dr. Michael Brown", specialty: "Orthopedic", patients: "900+", color: "bg-amber-500" },
+                  ].map((doc, i) => (
+                    <motion.div 
+                      key={doc.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + i * 0.1 }}
+                      className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center"
+                    >
+                      <div className={`w-12 h-12 ${doc.color} rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold`}>
+                        {doc.name.charAt(0)}
+                      </div>
+                      <p className="font-semibold text-sm">{doc.name}</p>
+                      <p className="text-xs text-muted-foreground">{doc.specialty}</p>
+                      <p className="text-xs text-primary font-medium">{doc.patients} patients</p>
+                    </motion.div>
+                  ))}
                 </div>
-                <p className="font-heading text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">{stat.value}</p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+              </div>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUp} className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">Powerful Features</span>
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
-              Everything You Need to Run Your Hospital
-            </h2>
-            <p className="text-muted-foreground mt-4 text-lg max-w-2xl mx-auto">
-              A complete suite of tools designed to streamline every aspect of your healthcare operations.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {features.map((feature, i) => (
-              <motion.div key={feature.title} initial="hidden" whileInView="visible"
-                viewport={{ once: true, margin: "-30px" }} variants={scaleIn}
-                className="group bg-card/60 backdrop-blur-sm rounded-2xl border border-border/60 p-6 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1">
-                <div className={`w-12 h-12 rounded-xl ${feature.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
-                </div>
-                <h3 className="font-heading font-semibold text-base text-card-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24 px-4 sm:px-6 bg-gradient-to-b from-transparent via-muted/20 to-transparent">
-        <div className="max-w-7xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}
-            variants={fadeUp} className="text-center mb-14">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">Loved by Healthcare Professionals</h2>
-            <p className="text-muted-foreground mt-3 max-w-lg mx-auto">See what hospital administrators and doctors say about MediCore.</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, i) => (
-              <motion.div key={testimonial.name} initial="hidden" whileInView="visible"
-                viewport={{ once: true }} variants={scaleIn} custom={i}
-                className="bg-card rounded-2xl border border-border/60 p-6 hover:shadow-lg transition-shadow">
-                <Quote className="w-8 h-8 text-primary/30 mb-4" />
-                <p className="text-muted-foreground leading-relaxed mb-6">"{testimonial.text}"</p>
+              {/* Floating badge */}
+              <motion.div 
+                animate={{ y: [-10, 10, -10] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-xl"
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white font-semibold text-sm">
-                    {testimonial.avatar}
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">{testimonial.name}</p>
-                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    <p className="font-semibold">Verified Doctors</p>
+                    <p className="text-xs text-muted-foreground">100% Certified</p>
                   </div>
                 </div>
               </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="py-12 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Button variant="outline" className="h-16 text-lg gap-3 py-4">
+              <Search className="w-5 h-5" /> Find by Speciality
+            </Button>
+            <Button variant="outline" className="h-16 text-lg gap-3 py-4">
+              <MapPin className="w-5 h-5" /> Find by Location
+            </Button>
+            <Button variant="outline" className="h-16 text-lg gap-3 py-4">
+              <CalendarDays className="w-5 h-5" /> Book Appointment
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Specialties Section */}
+      <section id="specialties" className="py-20 px-4 sm:px-6 bg-gradient-to-b from-muted/20 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" variants={fadeUp} className="text-center mb-14">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">Find by Speciality</h2>
+            <p className="text-muted-foreground mt-3">Browse through our extensive list of trusted doctors by specialty</p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {specialties.map((spec, i) => (
+              <motion.div 
+                key={spec.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ scale: 1.05 }}
+                className="bg-card rounded-2xl border border-border/60 p-6 text-center cursor-pointer hover:shadow-lg hover:border-primary/30 transition-all"
+              >
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${spec.color}/20 flex items-center justify-center mx-auto mb-4`}>
+                  <spec.icon className={`w-7 h-7 text-${spec.color.split('-')[1]}-500`} />
+                </div>
+                <h3 className="font-semibold text-foreground">{spec.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{spec.count} Doctors</p>
+              </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Top Doctors Section */}
+      <section id="doctors" className="py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" variants={fadeUp} className="text-center mb-14">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">Top Doctors to Book</h2>
+            <p className="text-muted-foreground mt-3">Simply browse through our extensive list of trusted doctors.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(doctorsList.length > 0 ? doctorsList : doctors).map((doc, i) => (
+              <motion.div 
+                key={doc.name || i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-card rounded-2xl border border-border/60 p-5 hover:shadow-lg transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-blue-500/30 flex items-center justify-center">
+                    <UserRound className="w-7 h-7 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground">{doc.name}</h3>
+                      {doc.available && (
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{doc.specialty || "General Physician"}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <span className="text-sm font-medium">{doc.rating || "4.8"}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground">{doc.patients || "500+"}+ patients</span>
+                    </div>
+                  </div>
+                </div>
+                <Button className="w-full mt-4" variant="outline">
+                  Book Appointment
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Button size="lg" variant="outline" className="gap-2">
+              View More Doctors <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6">
+      <section className="py-16 px-4 sm:px-6">
         <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-blue-600 p-10 sm:p-16 text-center relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 0%, transparent 40%), radial-gradient(circle at 80% 70%, white 0%, transparent 40%)' }} />
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 opacity-10" style={{ backgroundImage: 'conic-gradient(from 0deg, transparent, white, transparent)' }} />
+          className="max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-blue-600 p-8 sm:p-12 text-center relative overflow-hidden">
           
           <div className="relative z-10">
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to Transform Your Hospital?
+            <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+              With 100+ Trusted Doctors
             </h2>
-            <p className="text-white/80 text-lg max-w-xl mx-auto mb-10">
-              Join 500+ healthcare facilities already using MediCore to streamline their operations. 
-              Start your free 14-day trial today.
+            <p className="text-white/80 text-lg max-w-xl mx-auto mb-8">
+              Our network of certified healthcare professionals is here to provide you with the best care possible.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="gap-2 text-base px-10 h-14 bg-white text-primary hover:bg-white/90 shadow-xl"
-                onClick={() => navigate("/signup")}>
-                Start Free Trial <ArrowRight className="w-5 h-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 text-base px-10 h-14 border-white/30 text-white hover:bg-white/10"
-                onClick={() => navigate("/login")}>
-                Schedule Demo
-              </Button>
-            </div>
+            <Button size="lg" className="gap-2 text-base px-10 h-12 bg-white text-primary hover:bg-white/90 shadow-xl"
+              onClick={() => navigate("/signup")}>
+              Book Appointment <ArrowRight className="w-5 h-5" />
+            </Button>
           </div>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12 px-4 sm:px-6">
+      <footer className="border-t border-border/50 py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                 <Activity className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-heading text-base font-bold text-foreground">MediCore HMS</span>
+              <span className="font-heading text-base font-bold text-foreground">MediCore</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="#" className="hover:text-foreground transition-colors">Support</a>
-            </div>
-            <p className="text-xs text-muted-foreground">© 2026 MediCore. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">© 2026 MediCore. All rights reserved.</p>
           </div>
         </div>
       </footer>
