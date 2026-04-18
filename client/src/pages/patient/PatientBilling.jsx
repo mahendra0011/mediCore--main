@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Search, Calendar, CheckCircle, AlertCircle, XCircle, IndianRupee, Loader2 } from 'lucide-react';
+import { CreditCard, Search, Calendar, CheckCircle, AlertCircle, XCircle, IndianRupee, Loader2, Download, Printer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +51,34 @@ export default function PatientBilling() {
     } catch (error) {
       console.error('Error paying bill:', error);
     }
+  };
+
+  const downloadInvoice = (bill) => {
+    const content = `
+========================================
+        MEDICORE HOSPITAL
+========================================
+INVOICE: ${bill.invoiceId}
+Date: ${new Date().toLocaleDateString()}
+Due Date: ${bill.dueDate}
+----------------------------------------
+Patient: ${user?.name}
+Service: ${bill.service}
+Doctor: ${bill.doctor || 'N/A'}
+----------------------------------------
+Amount: Rs ${bill.amount}
+Paid: Rs ${bill.paid}
+Status: ${bill.status}
+========================================
+    `.trim();
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${bill.invoiceId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => { loadBilling(); }, []);
@@ -116,12 +144,13 @@ export default function PatientBilling() {
                   <p className="text-xs text-muted-foreground">Amount</p>
                   <p className="font-heading text-lg font-bold text-foreground">Rs {bill.amount}</p>
                 </div>
-                {bill.status !== 'Paid' && (
-                  <Button size="sm" onClick={() => handlePayBill(bill._id)}>Pay Now</Button>
-                )}
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="font-heading text-lg font-bold text-success">Rs {bill.paid}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => downloadInvoice(bill)}>
+                    <Download className="w-3.5 h-3.5 mr-1" /> Download
+                  </Button>
+                  {bill.status !== 'Paid' && (
+                    <Button size="sm" onClick={() => handlePayBill(bill._id)}>Pay Now</Button>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
