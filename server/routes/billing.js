@@ -37,33 +37,52 @@ router.get('/', protect, async (req, res) => {
     const { search, status } = req.query;
     const filter = {};
     
+    // If admin or doctor, show all bills (or filter by their name for doctors)
     if (req.user.role === 'patient') {
-      // Match by patientId OR by patient name (for backward compatibility)
       filter.$or = [
         { patientId: req.user._id },
         { patient: new RegExp(req.user.name, 'i') }
       ];
+    } else if (req.user.role === 'doctor') {
+      // Doctors see bills created by them
+      filter.doctor = new RegExp(req.user.name, 'i');
     }
+    // Admin sees all bills - no filter needed
     
     if (status && status !== 'All') filter.status = status;
-    if (search) filter.$or = filter.$or || [];
-    filter.$or.push(
-      { patient: new RegExp(search, 'i') },
-      { invoiceId: new RegExp(search, 'i') },
-      { service: new RegExp(search, 'i') }
-    );
+    if (search) {
+      if (filter.$or) {
+        filter.$or.push(
+          { patient: new RegExp(search, 'i') },
+          { invoiceId: new RegExp(search, 'i') },
+          { service: new RegExp(search, 'i') }
+        );
+      } else {
+        filter.$or = [
+          { patient: new RegExp(search, 'i') },
+          { invoiceId: new RegExp(search, 'i') },
+          { service: new RegExp(search, 'i') },
+          { doctor: new RegExp(search, 'i') }
+        ];
+      }
+    }
     
     const bills = await Billing.find(filter)
       .populate('patientId', 'name email phone')
       .populate('doctorId', 'name specialization')
       .sort({ createdAt: -1 });
     
-    // Calculate totals for patient's bills
-    const patientFilter = req.user.role === 'patient' 
-      ? { $or: [{ patientId: req.user._id }, { patient: new RegExp(req.user.name, 'i') }] }
-      : {};
+    // Calculate totals
+    let totalFilter = {};
+    if (req.user.role === 'patient') {
+      totalFilter = { $or: [{ patientId: req.user._id }, { patient: new RegExp(req.user.name, 'i') }] };
+    } else if (req.user.role === 'doctor') {
+      totalFilter = { doctor: new RegExp(req.user.name, 'i') };
+    }
+    // Admin gets all
+    
     const total = await Billing.aggregate([
-      { $match: patientFilter },
+      { $match: totalFilter },
       { $group: { _id: null, total: { $sum: '$amount' }, paid: { $sum: '$paid' } } }
     ]);
     
@@ -112,8 +131,8 @@ router.post('/', protect, async (req, res) => {
       invoiceId,
       patient: finalPatient,
       patientId: finalPatientId,
-      doctor: doctor || '',
-      doctorId: doctorId || null,
+      doctor: doctor || req.user?.name || 'Lab Services',
+      doctorId: doctorId || (req.user?.role === 'doctor' ? req.user._id : null),
       service: finalService,
       amount: finalAmount,
       date: date || new Date().toISOString().split('T')[0],

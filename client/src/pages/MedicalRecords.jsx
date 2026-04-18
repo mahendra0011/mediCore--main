@@ -21,10 +21,15 @@ export default function MedicalRecords() {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(empty);
 
-  const { data: records = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['records', search, typeFilter],
-    queryFn: () => api.getRecords({ ...(search && { search }), ...(typeFilter !== 'All' && { type: typeFilter }) }),
+    queryFn: async () => {
+      const result = await api.getRecords({ ...(search && { search }), ...(typeFilter !== 'All' && { type: typeFilter }) });
+      return result?.records || result || [];
+    },
   });
+
+  const records = data || [];
 
   const createMut = useMutation({ mutationFn: api.createRecord, onSuccess: () => { qc.invalidateQueries(['records']); setModal(false); setForm(empty); } });
   const deleteMut = useMutation({ mutationFn: api.deleteRecord, onSuccess: () => qc.invalidateQueries(['records']) });
