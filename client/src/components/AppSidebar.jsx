@@ -90,14 +90,13 @@ export default function AppSidebar() {
             <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-xs font-bold flex-shrink-0">
               {user.name?.charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
-              <NotificationBell className="!static !transform-none !w-auto !h-auto !p-0 !bg-transparent" />
-            </div>
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize ${roleBadgeColor[user.role] || 'bg-muted text-muted-foreground'}`}>
                 {user.role}
               </span>
             </div>
+            <NotificationBell />
           </div>
         </div>
       )}
