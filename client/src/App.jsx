@@ -27,6 +27,7 @@ import PatientBilling from './pages/patient/PatientBilling';
 import PatientPayment from './pages/patient/PatientPayment';
 import PatientReports from './pages/patient/PatientReports';
 import PatientServices from './pages/patient/PatientServices';
+import PatientEmergency from './pages/patient/PatientEmergency';
 import PatientDashboard from './pages/patient/PatientDashboard';
 
 // Doctor pages
@@ -122,6 +123,7 @@ const App = () => (
             <Route path="/patient/billing" element={<ProtectedRoute allowedRoles={['patient']}><DashboardPage><PatientBilling /></DashboardPage></ProtectedRoute>} />
             <Route path="/patient/payment" element={<ProtectedRoute allowedRoles={['patient']}><DashboardPage><PatientPayment /></DashboardPage></ProtectedRoute>} />
             <Route path="/patient/services" element={<ProtectedRoute allowedRoles={['patient']}><DashboardPage><PatientServices /></DashboardPage></ProtectedRoute>} />
+            <Route path="/patient/emergency" element={<ProtectedRoute allowedRoles={['patient']}><DashboardPage><PatientEmergency /></DashboardPage></ProtectedRoute>} />
 
             {/* Doctor routes */}
             <Route path="/doctor/appointments" element={<ProtectedRoute allowedRoles={['doctor']}><DashboardPage><DoctorAppointments /></DashboardPage></ProtectedRoute>} />
