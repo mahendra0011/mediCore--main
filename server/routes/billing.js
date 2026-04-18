@@ -50,8 +50,8 @@ router.get('/', protect, async (req, res) => {
     filter.$or.push(
       { patient: new RegExp(search, 'i') },
       { invoiceId: new RegExp(search, 'i') },
-      { service: new RegExp(search, 'i') },
-    ];
+      { service: new RegExp(search, 'i') }
+    );
     
     const bills = await Billing.find(filter)
       .populate('patientId', 'name email phone')
