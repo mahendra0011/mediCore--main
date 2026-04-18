@@ -1,103 +1,228 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, User, CheckCircle, XCircle, AlertCircle, Star, TrendingUp, DollarSign, Stethoscope } from 'lucide-react';
+import { CalendarDays, Clock, User, CheckCircle, XCircle, AlertCircle, Star, TrendingUp, DollarSign, Stethoscope, Activity, Heart, FileText, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
-import StatCard from '@/components/StatCard';
+
+const statusColors = {
+  Confirmed: { bg: 'bg-success/10', text: 'text-success', border: 'border-success/20' },
+  Pending: { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20' },
+  Completed: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+  Cancelled: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/20' },
+};
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const [a, r] = await Promise.all([
-          api.getAppointments({ doctor: user?.name }),
+        const [a, r, b] = await Promise.all([
+          api.getAppointments(),
           api.getReviews(),
+          api.getBilling(),
         ]);
-        setAppointments(a);
-        setReviews(r.filter(rv => rv.doctorName === user?.name));
+        const myAppointments = a?.filter(apt => 
+          apt.doctor?.toLowerCase().includes(user?.name?.toLowerCase())
+        ) || [];
+        setAppointments(myAppointments);
+        setReviews(r?.filter(rv => rv.doctorName === user?.name) || []);
+        
+        const billsArray = b?.bills || b || [];
+        const myBills = billsArray?.filter(bill => 
+          bill.doctor?.toLowerCase().includes(user?.name?.toLowerCase())
+        ) || [];
+        setBills(myBills);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
     load();
-  }, []);
+  }, [user?.name]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayAppts = appointments.filter(a => a.date === today);
   const pendingAppts = appointments.filter(a => a.status === 'Pending');
-  const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : 'N/A';
+  const completedAppts = appointments.filter(a => a.status === 'Completed');
+  const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+  
+  // Earnings
+  const totalEarned = bills.reduce((s, b) => s + (b.paid || 0), 0);
+  const pendingPayment = bills.filter(b => b.status === 'Pending').reduce((s, b) => s + (b.amount || 0), 0);
 
-  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Doctor Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, {user?.name}</p>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-3xl p-6 text-white">
+        <h1 className="font-heading text-2xl font-bold">Welcome, Dr. {user?.name}</h1>
+        <p className="opacity-90">Here's your practice overview</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Today's Appointments" value={todayAppts.length} icon={CalendarDays} change="Scheduled for today" />
-        <StatCard title="Pending Requests" value={pendingAppts.length} icon={AlertCircle} change="Awaiting response" />
-        <StatCard title="Total Appointments" value={appointments.length} icon={Stethoscope} change="All time" />
-        <StatCard title="Average Rating" value={avgRating} icon={Star} change={`${reviews.length} reviews`} />
-      </div>
-
-      {/* Today's Schedule */}
-      <div className="bg-card rounded-2xl border border-border/60 p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">Today's Schedule</h2>
-        {todayAppts.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No appointments scheduled for today</p>
-        ) : (
-          <div className="space-y-3">
-            {todayAppts.map(apt => (
-              <div key={apt._id} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{apt.patient}</p>
-                    <p className="text-xs text-muted-foreground">{apt.type} - {apt.department}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{apt.time}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${apt.status === 'Confirmed' ? 'bg-success/10 text-success' : apt.status === 'Pending' ? 'bg-warning/10 text-warning' : 'bg-muted text-muted-foreground'}`}>{apt.status}</span>
-                </div>
-              </div>
-            ))}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card rounded-2xl border border-border/60 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-success" />
+            </div>
           </div>
-        )}
+          <p className="font-heading text-2xl font-bold text-foreground">{todayAppts.length}</p>
+          <p className="text-sm text-muted-foreground">Today's Appointments</p>
+        </motion.div>
+        
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card rounded-2xl border border-border/60 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-warning" />
+            </div>
+          </div>
+          <p className="font-heading text-2xl font-bold text-foreground">{pendingAppts.length}</p>
+          <p className="text-sm text-muted-foreground">Pending</p>
+        </motion.div>
+        
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card rounded-2xl border border-border/60 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Stethoscope className="w-5 h-5 text-primary" />
+            </div>
+          </div>
+          <p className="font-heading text-2xl font-bold text-foreground">{completedAppts.length}</p>
+          <p className="text-sm text-muted-foreground">Completed</p>
+        </motion.div>
+        
+        <motion.div whileHover={{ scale: 1.02 }} className="bg-card rounded-2xl border border-border/60 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-warning" />
+            </div>
+          </div>
+          <p className="font-heading text-2xl font-bold text-foreground">Rs {totalEarned.toLocaleString()}</p>
+          <p className="text-sm text-muted-foreground">Total Earned</p>
+        </motion.div>
       </div>
 
-      {/* Recent Reviews */}
-      <div className="bg-card rounded-2xl border border-border/60 p-6">
-        <h2 className="font-heading text-lg font-semibold text-foreground mb-4">Recent Reviews</h2>
-        {reviews.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No reviews yet</p>
-        ) : (
-          <div className="space-y-3">
-            {reviews.slice(0, 3).map(rv => (
-              <div key={rv._id} className="p-3 bg-muted/30 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-foreground text-sm">{rv.patientName}</p>
-                  <div className="flex items-center gap-0.5">
-                    {[1,2,3,4,5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= rv.rating ? 'text-warning fill-warning' : 'text-muted'}`} />)}
-                  </div>
-                </div>
-                {rv.comment && <p className="text-xs text-muted-foreground">{rv.comment}</p>}
-              </div>
-            ))}
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Today's Appointments */}
+        <div className="bg-card rounded-2xl border border-border/60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-semibold text-foreground flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-primary" /> Today's Schedule
+            </h2>
+            <span className="text-xs text-muted-foreground">{today}</span>
           </div>
-        )}
+          
+          {todayAppts.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CalendarDays className="w-12 h-12 mx-auto mb-2 opacity-30" />
+              <p>No appointments today</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {todayAppts.slice(0, 5).map(apt => {
+                const colors = statusColors[apt.status] || statusColors.Pending;
+                return (
+                  <motion.div 
+                    key={apt._id} 
+                    whileHover={{ x: 4 }}
+                    className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center`}>
+                        <User className={`w-5 h-5 ${colors.text}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{apt.patient}</p>
+                        <p className="text-xs text-muted-foreground">{apt.department}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />{apt.time}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${colors.bg} ${colors.text}`}>
+                        {apt.status}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Reviews */}
+        <div className="bg-card rounded-2xl border border-border/60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-semibold text-foreground flex items-center gap-2">
+              <Star className="w-5 h-5 text-warning" /> Recent Reviews
+            </h2>
+            <div className="flex items-center gap-1">
+              {[1,2,3,4,5].map(s => (
+                <Star key={s} className={`w-4 h-4 ${s <= Math.round(Number(avgRating)) ? 'text-warning fill-warning' : 'text-muted'}`} />
+              ))}
+              <span className="text-sm font-medium ml-1">{avgRating}</span>
+            </div>
+          </div>
+          
+          {reviews.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Star className="w-12 h-12 mx-auto mb-2 opacity-30" />
+              <p>No reviews yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.slice(0, 4).map(rv => (
+                <div key={rv._id} className="p-4 bg-muted/30 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-foreground">{rv.patientName}</p>
+                    <div className="flex items-center gap-0.5">
+                      {[1,2,3,4,5].map(s => (
+                        <Star key={s} className={`w-3.5 h-3.5 ${s <= rv.rating ? 'text-warning fill-warning' : 'text-muted'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  {rv.comment && <p className="text-sm text-muted-foreground line-clamp-2">{rv.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-success/10 to-success/5 rounded-2xl border border-success/20 p-4 text-center">
+          <DollarSign className="w-6 h-6 mx-auto text-success mb-1" />
+          <p className="font-bold text-lg text-success">Rs {totalEarned.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">Earned</p>
+        </div>
+        <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-2xl border border-warning/20 p-4 text-center">
+          <AlertCircle className="w-6 h-6 mx-auto text-warning mb-1" />
+          <p className="font-bold text-lg text-warning">Rs {pendingPayment.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">Pending Payment</p>
+        </div>
+        <div className="bg-gradient-to-br from-info/10 to-info/5 rounded-2xl border border-info/20 p-4 text-center">
+          <Users className="w-6 h-6 mx-auto text-info mb-1" />
+          <p className="font-bold text-lg text-info">{appointments.length}</p>
+          <p className="text-xs text-muted-foreground">Total Patients</p>
+        </div>
+        <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20 p-4 text-center">
+          <Activity className="w-6 h-6 mx-auto text-primary mb-1" />
+          <p className="font-bold text-lg text-primary">{reviews.length}</p>
+          <p className="text-xs text-muted-foreground">Reviews</p>
+        </div>
       </div>
     </div>
   );
