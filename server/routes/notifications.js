@@ -5,18 +5,14 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Helper: get the correct userId for notification filtering
 const getNotificationUserId = async (req) => {
   const role = req.user.role;
   const rawId = req.user._id.toString();
-  if (role === 'admin') {
-    return req.query.userId || null; // admin sees all or filtered
-  }
+  if (role === 'admin') return req.query.userId || null;
   if (role === 'doctor') {
     const doctor = await Doctor.findOne({ user_id: rawId });
     return (doctor && doctor.user_id) ? doctor.user_id : rawId;
   }
-  // patient
   return rawId;
 };
 
@@ -26,9 +22,7 @@ router.get('/', protect, async (req, res) => {
     const effectiveUserId = await getNotificationUserId(req);
     if (effectiveUserId) filter.userId = effectiveUserId;
     res.json(await Notification.find(filter).sort({ createdAt: -1 }));
-  } catch (err) { 
-    res.status(500).json({ message: err.message }); 
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 router.get('/unread-count', protect, async (req, res) => {

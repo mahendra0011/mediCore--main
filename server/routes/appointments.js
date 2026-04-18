@@ -11,7 +11,7 @@ const createNotification = async (userId, title, message, type = 'appointment') 
   if (!userId) return;
   try {
     let finalUserId = userId.toString();
-    // Convert Doctor._id to User._id if needed
+    // If userId is a Doctor._id, convert to associated User._id
     const doctor = await Doctor.findById(userId);
     if (doctor && doctor.user_id) {
       finalUserId = doctor.user_id;
