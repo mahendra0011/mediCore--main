@@ -8,9 +8,13 @@ const router = express.Router();
 const getNotificationUserId = async (req) => {
   const role = req.user.role;
   const rawId = req.user._id.toString();
-  if (role === 'admin') return req.query.userId || null;
+  console.log('[getNotificationUserId] role:', role, 'rawId:', rawId);
+  if (role === 'admin') {
+    return req.query.userId || null;
+  }
   if (role === 'doctor') {
     const doctor = await Doctor.findOne({ user_id: rawId });
+    console.log('[getNotificationUserId] found doctor:', doctor ? doctor._id.toString() : 'none');
     return (doctor && doctor.user_id) ? doctor.user_id : rawId;
   }
   return rawId;
