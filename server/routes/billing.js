@@ -2,6 +2,7 @@ import express from 'express';
 import Billing from '../models/Billing.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import Doctor from '../models/Doctor.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -21,7 +22,13 @@ const createNotification = async (userId, title, message, type = 'payment') => {
   if (!userId) return;
   console.log('Creating notification for userId:', userId, 'title:', title);
   try {
-    await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
+    let finalUserId = userId.toString();
+    // If userId is a Doctor._id, convert to User._id
+    const doctor = await Doctor.findById(userId);
+    if (doctor && doctor.user_id) {
+      finalUserId = doctor.user_id;
+    }
+    await Notification.create({ title, message, type, read: false, userId: finalUserId, date: new Date().toISOString().split('T')[0] });
     console.log('Notification created successfully');
   } catch (err) {
     console.error('Error creating notification:', err);
@@ -170,7 +177,15 @@ router.post('/:id/pay', protect, async (req, res) => {
     
     await bill.save();
     
-    await createNotification(bill.patientId?.toString(), 'Payment Successful', `Payment of Rs ${bill.amount} received for ${bill.invoiceId}`, 'payment');
+    // Notify patient
+    if (bill.patientId) {
+      await createNotification(bill.patientId.toString(), 'Payment Successful', `Payment of Rs ${bill.amount} received for ${bill.invoiceId}`, 'payment');
+    }
+    
+    // Notify doctor if assigned
+    if (bill.doctorId) {
+      await createNotification(bill.doctorId.toString(), 'Payment Received', `Payment of Rs ${bill.amount} received from ${bill.patient} for ${bill.service}`, 'payment');
+    }
     
     res.json(bill);
   } catch (err) { res.status(400).json({ message: err.message }); }
