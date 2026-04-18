@@ -6,6 +6,17 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+export const LAB_SERVICES = [
+  { id: 'bp_check', name: 'Blood Pressure Check', price: 100, category: 'Basic' },
+  { id: 'blood_sugar', name: 'Blood Sugar Test', price: 150, category: 'Lab' },
+  { id: 'fbc', name: 'Full Blood Count', price: 300, category: 'Lab' },
+  { id: 'xray', name: 'X-Ray Scan', price: 500, category: 'Imaging' },
+  { id: 'ecg', name: 'ECG Test', price: 400, category: 'Cardiac' },
+  { id: 'urine_test', name: 'Urine Test', price: 150, category: 'Lab' },
+  { id: 'lipid_profile', name: 'Lipid Profile', price: 450, category: 'Lab' },
+  { id: 'thyroid', name: 'Thyroid Panel', price: 500, category: 'Lab' },
+];
+
 const createNotification = async (userId, title, message, type = 'payment') => {
   await Notification.create({ title, message, type, read: false, userId, date: new Date().toISOString().split('T')[0] });
 };
@@ -15,6 +26,11 @@ const findPatientByName = async (name) => {
   const patient = await User.findOne({ name: new RegExp(name, 'i'), role: 'patient' });
   return patient;
 };
+
+// Get available lab services
+router.get('/services', protect, async (req, res) => {
+  res.json(LAB_SERVICES);
+});
 
 router.get('/', protect, async (req, res) => {
   try {
@@ -48,7 +64,7 @@ router.get('/', protect, async (req, res) => {
 
 router.post('/', protect, async (req, res) => {
   try {
-    const { doctorId, doctor, service, amount, date, patient, patientId } = req.body;
+    const { doctorId, doctor, service, amount, date, patient, patientId, services } = req.body;
     
     const count = await Billing.countDocuments();
     const invoiceId = `INV-${String(count + 1).padStart(4, '0')}`;
@@ -75,17 +91,25 @@ router.post('/', protect, async (req, res) => {
       return res.status(400).json({ message: 'Patient not found. Please select a valid patient.' });
     }
     
+    // Calculate total from services if provided
+    let finalAmount = amount;
+    let finalService = service;
+    if (services && services.length > 0) {
+      finalAmount = services.reduce((sum, s) => sum + (s.price || 0), 0);
+      finalService = services.map(s => s.name).join(', ');
+    }
+    
     const bill = await Billing.create({
       invoiceId,
       patient: finalPatient,
       patientId: finalPatientId,
       doctor: doctor || '',
       doctorId: doctorId || null,
-      service,
-      amount,
+      service: finalService,
+      amount: finalAmount,
       date: date || new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: 'Pending'
+      status: 'Pending',
     });
     
     if (finalPatientId) {

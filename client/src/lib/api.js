@@ -1,4 +1,15 @@
 // ─── Mock data for offline / no-backend mode ───────────────────────────────
+const LAB_SERVICES = [
+  { id: 'bp_check', name: 'Blood Pressure Check', price: 100, category: 'Basic' },
+  { id: 'blood_sugar', name: 'Blood Sugar Test', price: 150, category: 'Lab' },
+  { id: 'fbc', name: 'Full Blood Count', price: 300, category: 'Lab' },
+  { id: 'xray', name: 'X-Ray Scan', price: 500, category: 'Imaging' },
+  { id: 'ecg', name: 'ECG Test', price: 400, category: 'Cardiac' },
+  { id: 'urine_test', name: 'Urine Test', price: 150, category: 'Lab' },
+  { id: 'lipid_profile', name: 'Lipid Profile', price: 450, category: 'Lab' },
+  { id: 'thyroid', name: 'Thyroid Panel', price: 500, category: 'Lab' },
+];
+
 let MOCK_USERS = {
   'admin@medicare.com':       { id: '1', name: 'Admin User',      email: 'admin@medicare.com',       role: 'admin',   password: 'password', phone: '', status: 'active' },
   'sarah.smith@medicare.com': { id: '2', name: 'Dr. Sarah Smith', email: 'sarah.smith@medicare.com', role: 'doctor',  password: 'password', phone: '', status: 'active' },
@@ -322,6 +333,10 @@ const mock = {
     const paid  = bills.reduce((s, b) => s + (b.paid || 0), 0);
     return { bills, summary: { total, paid } };
   },
+  async getLabServices() {
+    await delay();
+    return LAB_SERVICES;
+  },
   async createBill(body) {
     await delay();
     const invoiceId = `INV-${String(store.bills.length + 1).padStart(4, '0')}`;
@@ -620,6 +635,7 @@ export const api = {
   payBill:       (id,body) => dispatch(() => mock.updateBill(id,body),                  `/billing/${id}/pay`,{ method:'POST',   body: JSON.stringify(body) }),
   updateBill:    (id,body) => dispatch(() => mock.updateBill(id,body),                 `/billing/${id}`,    { method:'PUT',    body: JSON.stringify(body) }),
   deleteBill:    (id)      => dispatch(() => mock.deleteBill(id),                      `/billing/${id}`,    { method:'DELETE' }),
+  getLabServices: ()     => dispatch(() => Promise.resolve(LAB_SERVICES),      '/billing/services'),
 
   getReviews:    (p={})    => dispatch(() => mock.getReviews(p),                       '/reviews?'           + new URLSearchParams(p)),
   createReview:  (body)    => dispatch(() => mock.createReview(body),                  '/reviews',           { method:'POST',   body: JSON.stringify(body) }),
