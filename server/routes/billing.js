@@ -193,9 +193,24 @@ router.post('/:id/pay', protect, async (req, res) => {
 
 router.put('/:id', protect, async (req, res) => {
   try {
-    const bill = await Billing.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!bill) return res.status(404).json({ message: 'Invoice not found' });
-    res.json(bill);
+    const oldBill = await Billing.findById(req.params.id);
+    if (!oldBill) return res.status(404).json({ message: 'Invoice not found' });
+
+    const updatedBill = await Billing.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+
+    // Send notifications if status changed to Paid
+    if (req.body.status === 'Paid' && oldBill.status !== 'Paid') {
+      // Notify patient
+      if (updatedBill.patientId) {
+        await createNotification(updatedBill.patientId.toString(), 'Payment Successful', `Payment of Rs ${updatedBill.amount} received for ${updatedBill.invoiceId}`, 'payment');
+      }
+      // Notify doctor if assigned
+      if (updatedBill.doctorId) {
+        await createNotification(updatedBill.doctorId.toString(), 'Payment Received', `Payment of Rs ${updatedBill.amount} received from ${updatedBill.patient} for ${updatedBill.service}`, 'payment');
+      }
+    }
+
+    res.json(updatedBill);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
 
