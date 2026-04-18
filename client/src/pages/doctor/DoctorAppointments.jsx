@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Clock, User, CheckCircle, XCircle, AlertCircle, Filter, RefreshCw, FileText, IndianRupee, Send, Plus, X } from 'lucide-react';
+import { CalendarDays, Clock, User, CheckCircle, XCircle, AlertCircle, Filter, RefreshCw, FileText, IndianRupee, Send, Plus, X, Calendar, Stethoscope, Activity, Video, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 
-const statusColors = { Confirmed: 'bg-success/10 text-success', Pending: 'bg-warning/10 text-warning', Cancelled: 'bg-destructive/10 text-destructive', Completed: 'bg-info/10 text-info' };
+const statusConfig = {
+  Confirmed: { color: 'bg-emerald-500', bg: 'bg-emerald-500/10', text: 'text-emerald-600', icon: CheckCircle, label: 'Confirmed' },
+  Pending: { color: 'bg-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-600', icon: AlertCircle, label: 'Pending' },
+  Cancelled: { color: 'bg-red-500', bg: 'bg-red-500/10', text: 'text-red-600', icon: XCircle, label: 'Cancelled' },
+  Completed: { color: 'bg-blue-500', bg: 'bg-blue-500/10', text: 'text-blue-600', icon: CheckCircle, label: 'Completed' },
+};
+
 const filters = ['All', 'Confirmed', 'Pending', 'Cancelled', 'Completed'];
 const billServices = {
   'Consultation': 500,
@@ -270,84 +276,175 @@ export default function DoctorAppointments() {
     } catch (e) { console.error(e); }
   };
 
+  const stats = {
+    total: appointments.length,
+    pending: appointments.filter(a => a.status === 'Pending').length,
+    confirmed: appointments.filter(a => a.status === 'Confirmed').length,
+    completed: appointments.filter(a => a.status === 'Completed').length,
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">My Appointments</h1>
-        <p className="text-muted-foreground">Manage your patient appointments</p>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">Appointments</h1>
+          <p className="text-muted-foreground mt-1">Manage your patient appointments & sessions</p>
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="flex gap-3">
+          {[
+            { label: 'Total', value: stats.total, icon: CalendarDays, color: 'from-violet-500 to-purple-500' },
+            { label: 'Pending', value: stats.pending, icon: Clock, color: 'from-amber-500 to-orange-500' },
+            { label: 'Confirmed', value: stats.confirmed, icon: CheckCircle, color: 'from-emerald-500 to-teal-500' },
+            { label: 'Done', value: stats.completed, icon: Activity, color: 'from-blue-500 to-cyan-500' },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+              className="bg-card rounded-xl border border-border/60 p-3 min-w-[80px]">
+              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center mb-2`}>
+                <stat.icon className="w-4 h-4 text-white" />
+              </div>
+              <p className="text-xl font-bold text-foreground">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Filter Tabs */}
+      <div className="bg-card rounded-2xl border border-border/60 p-1.5 flex gap-1 overflow-x-auto">
         {filters.map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${filter === f ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${filter === f ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}>
+            {f === 'All' && <Calendar className="w-4 h-4" />}
+            {f === 'Pending' && <Clock className="w-4 h-4" />}
+            {f === 'Confirmed' && <CheckCircle className="w-4 h-4" />}
+            {f === 'Completed' && <Activity className="w-4 h-4" />}
+            {f === 'Cancelled' && <XCircle className="w-4 h-4" />}
             {f}
           </button>
         ))}
       </div>
 
+      {/* Appointments Grid */}
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-20">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : appointments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">No appointments found</div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-3xl border border-border/60 p-12 text-center">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+            <CalendarDays className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h3 className="font-heading text-xl font-semibold text-foreground mb-2">No Appointments</h3>
+          <p className="text-muted-foreground">No appointments found for {filter.toLowerCase()} status</p>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {appointments.map((apt, i) => (
-            <motion.div key={apt._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-2xl border border-border/60 p-5 hover:shadow-lg transition-all">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-heading font-semibold text-foreground">{apt.patient}</h3>
-                  <p className="text-sm text-primary">{apt.type} - {apt.department}</p>
-                </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[apt.status]}`}>{apt.status}</span>
-              </div>
-              <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-2"><CalendarDays className="w-3.5 h-3.5" /><span>{apt.date}</span></div>
-                <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5" /><span>{apt.time}</span></div>
-              </div>
-              {apt.notes && <p className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 mb-3">Notes: {apt.notes}</p>}
-              <div className="flex gap-2">
-                {apt.status === 'Pending' && (
-                  <>
-                    <Button size="sm" className="flex-1 gap-1" onClick={() => handleStatus(apt._id, 'Confirmed')}>
-                      <CheckCircle className="w-3.5 h-3.5" /> Accept
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 gap-1 text-destructive hover:text-destructive" onClick={() => handleStatus(apt._id, 'Cancelled')}>
-                      <XCircle className="w-3.5 h-3.5" /> Reject
-                    </Button>
-                  </>
-                )}
-                {apt.status === 'Confirmed' && (
-                  <>
-                    <Button size="sm" className="flex-1 gap-1" onClick={() => handleComplete(apt)}>
-                      <CheckCircle className="w-3.5 h-3.5" /> Complete
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => setRescheduleId(apt._id)}>
-                      <RefreshCw className="w-3.5 h-3.5" /> Reschedule
-                    </Button>
-                  </>
-                )}
-                {apt.status === 'Completed' && (
-                  <div className="flex gap-2 w-full">
-                    <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => openReportModal(apt, 'Prescription')}>
-                      <FileText className="w-3.5 h-3.5" /> Prescription
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => openReportModal(apt, 'Lab Report')}>
-                      <FileText className="w-3.5 h-3.5" /> Lab Report
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => openReportModal(apt, 'Discharge Summary')}>
-                      <FileText className="w-3.5 h-3.5" /> Discharge
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => { setCompleteId(apt._id); setBillModal(true); }}>
-                      <IndianRupee className="w-3.5 h-3.5" /> Bill
-                    </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {appointments.map((apt, i) => {
+            const status = statusConfig[apt.status] || statusConfig.Pending;
+            const StatusIcon = status.icon;
+            
+            return (
+              <motion.div key={apt._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                className="group relative bg-card rounded-2xl border border-border/60 p-0 overflow-hidden hover:shadow-xl hover:border-primary/30 transition-all">
+                {/* Gradient accent bar */}
+                <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${status.color.replace('bg-', 'from-').replace('-500', '-400')} to-transparent`} />
+                
+                <div className="p-5 pl-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-blue-500/20 flex items-center justify-center">
+                        <User className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-semibold text-lg text-foreground">{apt.patient}</h3>
+                        <p className="text-sm text-primary flex items-center gap-1">
+                          <Stethoscope className="w-3.5 h-3.5" />
+                          {apt.type} - {apt.department}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}>
+                      <StatusIcon className="w-3.5 h-3.5" />
+                      {status.label}
+                    </div>
                   </div>
-                )}
-              </div>
-            </motion.div>
-          ))}
+
+                  {/* Date & Time */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-muted/40 rounded-xl p-3">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <CalendarDays className="w-4 h-4" />
+                        <span className="text-xs">Date</span>
+                      </div>
+                      <p className="font-semibold text-foreground">{apt.date}</p>
+                    </div>
+                    <div className="bg-muted/40 rounded-xl p-3">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-xs">Time</span>
+                      </div>
+                      <p className="font-semibold text-foreground">{apt.time}</p>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  {apt.notes && (
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 mb-4">
+                      <p className="text-xs text-amber-700 flex items-start gap-2">
+                        <MessageSquare className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                        {apt.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {apt.status === 'Pending' && (
+                      <>
+                        <Button size="sm" className="flex-1 gap-1.5 bg-emerald-500 hover:bg-emerald-600" onClick={() => handleStatus(apt._id, 'Confirmed')}>
+                          <CheckCircle className="w-4 h-4" /> Accept
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600" onClick={() => handleStatus(apt._id, 'Cancelled')}>
+                          <XCircle className="w-4 h-4" /> Reject
+                        </Button>
+                      </>
+                    )}
+                    {apt.status === 'Confirmed' && (
+                      <>
+                        <Button size="sm" className="flex-1 gap-1.5 bg-blue-500 hover:bg-blue-600" onClick={() => handleComplete(apt)}>
+                          <CheckCircle className="w-4 h-4" /> Complete
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => setRescheduleId(apt._id)}>
+                          <RefreshCw className="w-4 h-4" /> Reschedule
+                        </Button>
+                      </>
+                    )}
+                    {apt.status === 'Completed' && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 w-full">
+                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => openReportModal(apt, 'Prescription')}>
+                          <FileText className="w-3.5 h-3.5" /> Rx
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => openReportModal(apt, 'Lab Report')}>
+                          <FileText className="w-3.5 h-3.5" /> Lab
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => openReportModal(apt, 'Discharge Summary')}>
+                          <FileText className="w-3.5 h-3.5" /> Discharge
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1 text-xs text-emerald-600 hover:text-emerald-700 hover:border-emerald-300" onClick={() => { setCompleteId(apt._id); setBillModal(true); }}>
+                          <IndianRupee className="w-3.5 h-3.5" /> Bill
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
@@ -356,18 +453,23 @@ export default function DoctorAppointments() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setRescheduleId(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             className="bg-card rounded-2xl border border-border w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Reschedule Appointment</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-amber-500" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-foreground">Reschedule Appointment</h3>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">New Date</label>
                 <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} min={new Date().toISOString().split('T')[0]} />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">New Time</label>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Select Time Slot</label>
                 <div className="grid grid-cols-4 gap-2">
                   {timeSlots.map(t => (
                     <button key={t} onClick={() => setNewTime(t)}
-                      className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${newTime === t ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                      className={`px-2 py-2 rounded-lg text-xs font-medium transition-all ${newTime === t ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
                       {t}
                     </button>
                   ))}
@@ -376,33 +478,40 @@ export default function DoctorAppointments() {
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setRescheduleId(null)}>Cancel</Button>
-              <Button className="flex-1" onClick={handleReschedule} disabled={!newDate || !newTime}>Confirm</Button>
+              <Button className="flex-1 gap-2" onClick={handleReschedule} disabled={!newDate || !newTime}>
+                <Calendar className="w-4 h-4" /> Confirm
+              </Button>
             </div>
           </motion.div>
         </div>
       )}
 
-      {/* Complete Session Modal - Show Report and Bill options */}
+      {/* Complete Session Modal */}
       {completeId && !showReportModal && !billModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setCompleteId(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             className="bg-card rounded-2xl border border-border w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Complete Session</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-blue-500" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-foreground">Complete Session</h3>
+            </div>
             <p className="text-sm text-muted-foreground mb-6">Generate a report and bill for this patient session</p>
             <div className="space-y-3">
-              <Button className="w-full gap-2" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Prescription')}>
+              <Button className="w-full gap-2 justify-start" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Prescription')}>
                 <FileText className="w-4 h-4" /> Generate Prescription
               </Button>
-              <Button className="w-full gap-2" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Lab Report')}>
+              <Button className="w-full gap-2 justify-start" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Lab Report')}>
                 <FileText className="w-4 h-4" /> Generate Lab Report
               </Button>
-              <Button className="w-full gap-2" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Discharge Summary')}>
+              <Button className="w-full gap-2 justify-start" onClick={() => openReportModal(appointments.find(a => a._id === completeId), 'Discharge Summary')}>
                 <FileText className="w-4 h-4" /> Generate Discharge Summary
               </Button>
-              <Button className="w-full gap-2" onClick={() => setBillModal(true)}>
+              <Button className="w-full gap-2 justify-start bg-emerald-500 hover:bg-emerald-600" onClick={() => setBillModal(true)}>
                 <IndianRupee className="w-4 h-4" /> Generate Bill
               </Button>
-              <Button variant="outline" className="w-full gap-2" onClick={async () => { await api.updateAppointment(completeId, { status: 'Completed' }); setCompleteId(null); loadAppointments(); }}>
+              <Button variant="outline" className="w-full gap-2 justify-start" onClick={async () => { await api.updateAppointment(completeId, { status: 'Completed' }); setCompleteId(null); loadAppointments(); }}>
                 <CheckCircle className="w-4 h-4" /> Complete Without Report/Bill
               </Button>
             </div>
@@ -732,14 +841,19 @@ export default function DoctorAppointments() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setBillModal(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             className="bg-card rounded-2xl border border-border w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="font-heading text-lg font-bold text-foreground mb-4">Generate Invoice</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <IndianRupee className="w-5 h-5 text-emerald-500" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-foreground">Generate Invoice</h3>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Service</label>
                 <Input value={`${appointments.find(a => a._id === completeId)?.type || 'Consultation'} - ${appointments.find(a => a._id === completeId)?.department || ''}`} disabled />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Amount ($)</label>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Amount (Rs)</label>
                 <Input type="number" value={billAmount} onChange={e => setBillAmount(Number(e.target.value))} min={0} />
               </div>
             </div>
