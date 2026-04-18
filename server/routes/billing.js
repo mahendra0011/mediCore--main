@@ -19,7 +19,13 @@ export const LAB_SERVICES = [
 
 const createNotification = async (userId, title, message, type = 'payment') => {
   if (!userId) return;
-  await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
+  console.log('Creating notification for userId:', userId, 'title:', title);
+  try {
+    await Notification.create({ title, message, type, read: false, userId: userId.toString(), date: new Date().toISOString().split('T')[0] });
+    console.log('Notification created successfully');
+  } catch (err) {
+    console.error('Error creating notification:', err);
+  }
 };
 
 const findPatientByName = async (name) => {

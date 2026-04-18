@@ -6,17 +6,23 @@ const router = express.Router();
 
 router.get('/', protect, async (req, res) => {
   try {
+    console.log('Notification request - Role:', req.user.role, 'UserID:', req.user._id, 'Full user:', req.user);
     const filter = {};
     // Admin sees all notifications (can filter by userId if provided)
     // Doctor and Patient see only their own notifications
     if (req.user.role !== 'admin') {
       filter.userId = req.user._id.toString();
+      console.log('Filter for non-admin:', filter);
     } else if (req.query.userId) {
       filter.userId = req.query.userId;
     }
     const notifications = await Notification.find(filter).sort({ createdAt: -1 });
+    console.log('Found notifications:', notifications.length, notifications.map(n => ({ id: n._id, userId: n.userId, title: n.title })));
     res.json(notifications);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { 
+    console.error('Notification error:', err);
+    res.status(500).json({ message: err.message }); 
+  }
 });
 
 router.get('/unread-count', protect, async (req, res) => {

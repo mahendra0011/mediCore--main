@@ -7,14 +7,20 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 
 const createNotification = async (userId, title, message, type = 'system') => {
-  await Notification.create({ 
-    title, 
-    message, 
-    type, 
-    read: false, 
-    userId: userId.toString(), 
-    date: new Date().toISOString().split('T')[0] 
-  });
+  console.log('Creating notification for userId:', userId, 'title:', title);
+  try {
+    await Notification.create({ 
+      title, 
+      message, 
+      type, 
+      read: false, 
+      userId: userId.toString(), 
+      date: new Date().toISOString().split('T')[0] 
+    });
+    console.log('Notification created successfully');
+  } catch (err) {
+    console.error('Error creating notification:', err);
+  }
 };
 
 router.get('/', protect, async (req, res) => {
