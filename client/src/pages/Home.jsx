@@ -1,31 +1,43 @@
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useState, useEffect, useRef } from "react";
 import {
   Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, CreditCard,
   Shield, Clock, HeartPulse, ChevronRight, Zap, Star, Quote, Phone, MapPin,
   Award, Heart, Baby, Brain, Bone, Eye, Microscope, Thermometer, CheckCircle,
-  Play, Users, Hospital, Sparkles, ArrowUp, ArrowDown, Menu, X, Gift
+  Play, Users, Hospital, Sparkles, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 
-// Register GSAP plugin
-gsap.registerPlugin(ScrollTrigger);
+// Animation variants
+const fadeUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: i => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.1, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }
+  })
+};
 
-const services = [
-  { icon: HeartPulse, name: "Cardiology", desc: "Heart care & treatment", color: "from-red-500/10 to-red-500/5", iconColor: "text-red-600" },
-  { icon: Brain, name: "Neurology", desc: "Brain & nervous system", color: "from-purple-500/10 to-purple-500/5", iconColor: "text-purple-600" },
-  { icon: Bone, name: "Orthopedics", desc: "Bone & joint care", color: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
-  { icon: Eye, name: "Ophthalmology", desc: "Eye care & surgery", color: "from-blue-500/10 to-blue-500/5", iconColor: "text-blue-600" },
-  { icon: Baby, name: "Pediatrics", desc: "Child healthcare", color: "from-pink-500/10 to-pink-500/5", iconColor: "text-pink-600" },
-  { icon: Microscope, name: "Pathology", desc: "Lab & diagnostics", color: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
-];
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
 
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: i => ({
+    opacity: 1, scale: 1,
+    transition: { delay: i * 0.05, duration: 0.5, ease: "easeOut" }
+  })
+};
+
+// Doctor images using pravatar
 const doctorImages = [
   "https://i.pravatar.cc/300?img=12",
   "https://i.pravatar.cc/300?img=32",
@@ -64,6 +76,15 @@ const statsData = [
   { label: "Happy Patients", value: 20000, suffix: "+", icon: Heart },
   { label: "Appointments", value: 50000, suffix: "+", icon: CalendarDays },
   { label: "Years Experience", value: 15, suffix: "+", icon: Award }
+];
+
+const services = [
+  { icon: HeartPulse, name: "Cardiology", desc: "Heart care & treatment", color: "from-red-500/10 to-red-500/5", iconColor: "text-red-600" },
+  { icon: Brain, name: "Neurology", desc: "Brain & nervous system", color: "from-purple-500/10 to-purple-500/5", iconColor: "text-purple-600" },
+  { icon: Bone, name: "Orthopedics", desc: "Bone & joint care", color: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
+  { icon: Eye, name: "Ophthalmology", desc: "Eye care & surgery", color: "from-blue-500/10 to-blue-500/5", iconColor: "text-blue-600" },
+  { icon: Baby, name: "Pediatrics", desc: "Child healthcare", color: "from-pink-500/10 to-pink-500/5", iconColor: "text-pink-600" },
+  { icon: Microscope, name: "Pathology", desc: "Lab & diagnostics", color: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
 ];
 
 const features = [
@@ -114,10 +135,11 @@ const features = [
 const Home = () => {
   const navigate = useNavigate();
   const [doctorsList, setDoctorsList] = useState([]);
+  const [counters, setCounters] = useState(statsData.map(() => 0));
   const [countersVisible, setCountersVisible] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Refs
+  // Section refs for scroll animations
   const heroRef = useRef(null);
   const statsRef = useRef(null);
   const servicesRef = useRef(null);
@@ -126,26 +148,11 @@ const Home = () => {
   const testimonialsRef = useRef(null);
   const ctaRef = useRef(null);
 
-  // Parallax refs
-  const parallaxBg1 = useRef(null);
-  const parallaxBg2 = useRef(null);
-  const parallaxBg3 = useRef(null);
-
-  // Magnetic refs
-  const magneticBtn1 = useRef(null);
-  const magneticBtn2 = useRef(null);
-
-  // Tilt refs
-  const doctorCardRefs = useRef([]);
-
-  // Scroll-based transforms
+  // Scroll-based transforms for hero
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 600], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 600], [1, 0.9]);
-  const heroY = useTransform(scrollY, [0, 600], [0, 200]);
-
-  // Counter state
-  const [counters, setCounters] = useState(statsData.map(() => 0));
+  const heroScale = useTransform(scrollY, [0, 600], [1, 0.95]);
+  const heroY = useTransform(scrollY, [0, 600], [0, 150]);
 
   useEffect(() => {
     const load = async () => {
@@ -159,107 +166,79 @@ const Home = () => {
     load();
   }, []);
 
-  // GSAP ScrollTrigger animations
+  // Stats counter animation
   useEffect(() => {
-    // Parallax background orbs
-    gsap.to(parallaxBg1.current, {
-      yPercent: -30,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true
-      }
-    });
-
-    gsap.to(parallaxBg2.current, {
-      yPercent: -20,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true
-      }
-    });
-
-    gsap.to(parallaxBg3.current, {
-      yPercent: -25,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true
-      }
-    });
-
-    // Stats counter animation
-    ScrollTrigger.create({
-      trigger: statsRef.current,
-      start: 'top 80%',
-      onEnter: () => {
-        setCountersVisible(true);
-        counters.forEach((_, idx) => {
-          const target = statsData[idx].value;
-          const duration = 2.5;
-          const steps = 60;
-          const increment = target / steps;
-          let current = 0;
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-              current = target;
-              clearInterval(timer);
-            }
-            setCounters(prev => {
-              const newCounters = [...prev];
-              newCounters[idx] = Math.floor(current);
-              return newCounters;
-            });
-          }, duration / steps);
-        });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !countersVisible) {
+          setCountersVisible(true);
+          // Animate each counter
+          counters.forEach((_, idx) => {
+            const target = statsData[idx].value;
+            const duration = 2500;
+            const steps = 60;
+            const increment = target / steps;
+            let current = 0;
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              setCounters(prev => {
+                const newCounters = [...prev];
+                newCounters[idx] = Math.floor(current);
+                return newCounters;
+              });
+            }, duration / steps);
+          });
+        }
       },
-      once: true
-    });
+      { threshold: 0.5 }
+    );
 
-    // Cleanup
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
-  }, [counters]);
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, [countersVisible]);
 
-  // Smooth scroll for anchors
+  // Smooth scroll for anchor links
   const handleAnchorClick = (e) => {
     const href = e.currentTarget.getAttribute('href');
     if (href?.startsWith('#')) {
       e.preventDefault();
       const target = document.querySelector(href);
       if (target) {
-        gsap.to(window, {
-          duration: 1.5,
-          scrollTo: { y: target, offsetY: -80 },
-          ease: 'power3.inOut'
-        });
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Parallax Background Orbs */}
-      <div ref={heroRef} className="fixed inset-0 pointer-events-none -z-10">
-        <div ref={parallaxBg1} className="absolute -top-1/4 -left-1/4 w-[900px] h-[900px] rounded-full bg-gradient-to-br from-primary/20 via-blue-500/15 to-transparent blur-3xl" />
-        <div ref={parallaxBg2} className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-emerald-500/15 via-cyan-500/10 to-transparent blur-3xl" />
-        <div ref={parallaxBg3} className="absolute bottom-0 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-rose-500/10 to-transparent blur-3xl" />
+      {/* Animated Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/4 -left-1/4 w-[900px] h-[900px] rounded-full bg-gradient-to-br from-primary/20 via-blue-500/15 to-transparent blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-emerald-500/15 via-cyan-500/10 to-transparent blur-3xl"
+        />
+        <motion.div
+          animate={{ y: [0, 30, 0], opacity: [0.08, 0.12, 0.08] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-0 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-rose-500/10 to-transparent blur-3xl"
+        />
       </div>
 
       {/* Navigation */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
         className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/40 shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -270,11 +249,11 @@ const Home = () => {
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <div className="relative group">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
                   <Activity className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <div className="absolute -inset-1 rounded-2xl bg-primary/20 blur-md -z-10 group-hover:bg-primary/30 transition-all" />
+                <div className="absolute -inset-1 rounded-2xl bg-primary/20 blur-sm -z-10" />
               </div>
               <span className="font-heading text-2xl font-bold bg-gradient-to-r from-primary via-blue-600 to-violet-600 bg-clip-text text-transparent hidden sm:block">
                 MediCare
@@ -305,7 +284,6 @@ const Home = () => {
                 Sign In
               </Button>
               <Button
-                ref={magneticBtn1}
                 size="sm"
                 className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20"
                 onClick={() => navigate("/signup")}
@@ -329,7 +307,6 @@ const Home = () => {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-background border-t border-border/40 px-4 py-4 space-y-3"
           >
             {["Home", "Doctors", "Services", "About", "Contact"].map((item) => (
@@ -359,7 +336,7 @@ const Home = () => {
         ref={heroRef}
         className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
       >
-        <motion.div style={{ opacity: heroOpacity, y: heroY }} className="absolute inset-0">
+        <motion.div style={{ opacity: heroOpacity, scale: heroScale, y: heroY }} className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         </motion.div>
 
@@ -406,17 +383,10 @@ const Home = () => {
                   >
                     <path
                       d="M2 6c50-10 100 0 150-5s100 5 150 0"
-                      stroke="url(#gradient2)"
+                      stroke="hsl(var(--primary))"
                       strokeWidth="4"
                       strokeLinecap="round"
                     />
-                    <defs>
-                      <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" />
-                        <stop offset="50%" stopColor="hsl(var(--primary))" />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" />
-                      </linearGradient>
-                    </defs>
                   </motion.svg>
                 </span>
               </motion.h1>
@@ -464,7 +434,6 @@ const Home = () => {
                 className="flex flex-col sm:flex-row gap-4 mt-10 justify-center lg:justify-start"
               >
                 <Button
-                  ref={magneticBtn2}
                   size="lg"
                   className="gap-2 text-base px-8 h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl shadow-primary/25 group relative overflow-hidden"
                   onClick={() => navigate("/signup")}
@@ -494,53 +463,50 @@ const Home = () => {
               className="relative hidden lg:block"
             >
               <div className="relative grid grid-cols-2 gap-4 max-w-lg mx-auto">
-                {doctorImages.slice(0, 4).map((img, i) => {
-                  const cardRef = (el) => { doctorCardRefs.current[i] = el; };
-                  return (
+                {doctorImages.slice(0, 4).map((img, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    className={`relative overflow-hidden rounded-2xl bg-card border border-border/60 p-3 shadow-xl cursor-pointer group ${i === 0 ? 'row-span-2' : ''}`}
+                  >
+                    <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
+                      <img
+                        src={img}
+                        alt={`Doctor ${i + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      {i === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                          className="absolute bottom-3 left-2 right-2"
+                        >
+                          <p className="text-white text-xs font-semibold">Senior Cardiologist</p>
+                        </motion.div>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <p className="font-heading font-semibold text-card-foreground text-sm truncate">
+                        Dr. {["Sarah Smith", "James Wilson", "Emily Chen", "Michael Brown"][i]}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {["Cardiologist", "Neurologist", "Pediatrician", "Orthopedic"][i]}
+                      </p>
+                    </div>
+                    {/* Floating rating badge */}
                     <motion.div
-                      key={i}
-                      ref={cardRef}
-                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
-                      whileHover={{ scale: 1.02, y: -5 }}
-                      className={`relative overflow-hidden rounded-2xl bg-card border border-border/60 p-3 shadow-xl cursor-pointer group ${i === 0 ? 'row-span-2' : ''}`}
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"
                     >
-                      <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
-                        <img
-                          src={img}
-                          alt={`Doctor ${i + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        {i === 0 && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            className="absolute bottom-3 left-2 right-2"
-                          >
-                            <p className="text-white text-xs font-semibold">Senior Cardiologist</p>
-                          </motion.div>
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <p className="font-heading font-semibold text-card-foreground text-sm truncate">
-                          Dr. {["Sarah Smith", "James Wilson", "Emily Chen", "Michael Brown"][i]}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {["Cardiologist", "Neurologist", "Pediatrician", "Orthopedic"][i]}
-                        </p>
-                      </div>
-                      <motion.div
-                        animate={{ scale: [1, 1.15, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"
-                      >
-                        <Star className="w-4 h-4 text-white fill-white" />
-                      </motion.div>
+                      <Star className="w-4 h-4 text-white fill-white" />
                     </motion.div>
-                  );
-                })}
+                  </motion.div>
+                ))}
               </div>
 
               {/* Floating Badges */}
@@ -652,14 +618,17 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {services.map((service, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
+                variants={scaleIn}
                 whileHover={{ y: -10, scale: 1.02 }}
                 className={`group relative bg-card rounded-2xl border border-border/60 p-6 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 overflow-hidden`}
               >
@@ -684,7 +653,7 @@ const Home = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -710,68 +679,67 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(doctorsList.length > 0 ? doctorsList : []).map((doc, i) => {
-              const cardRef = (el) => { doctorCardRefs.current[i] = el; };
-              return (
-                <motion.div
-                  key={doc._id || i}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08, duration: 0.5 }}
-                  whileHover={{ y: -12 }}
-                  className="group bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-300"
-                  ref={cardRef}
-                >
-                  <div className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-blue-500/10">
-                    <motion.img
-                      src={doctorImages[i % doctorImages.length]}
-                      alt={doc.name || `Doctor ${i + 1}`}
-                      className="w-full h-full object-cover"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-3 left-4 right-4">
-                      <div className="flex items-center justify-between text-white">
-                        <div>
-                          <h3 className="font-heading font-bold text-lg leading-tight">{doc.name || `Dr. ${["Smith", "Patel", "Lee", "Garcia", "Wilson", "Mitchell"][i]}`}</h3>
-                          <p className="text-sm opacity-90">{doc.specialty || ["Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Gynecologist", "Orthopedic"][i]}</p>
-                        </div>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {(doctorsList.length > 0 ? doctorsList : []).map((doc, i) => (
+              <motion.div
+                key={doc._id || i}
+                variants={scaleIn}
+                whileHover={{ y: -12 }}
+                className="group bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-300"
+              >
+                <div className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-blue-500/10">
+                  <motion.img
+                    src={doctorImages[i % doctorImages.length]}
+                    alt={doc.name || `Doctor ${i + 1}`}
+                    className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <div className="flex items-center justify-between text-white">
+                      <div>
+                        <h3 className="font-heading font-bold text-lg leading-tight">{doc.name || `Dr. ${["Smith", "Patel", "Lee", "Garcia", "Wilson", "Mitchell"][i]}`}</h3>
+                        <p className="text-sm opacity-90">{doc.specialty || ["Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Gynecologist", "Orthopedic"][i]}</p>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                        <span className="font-semibold text-foreground">{doc.rating?.toFixed(1) || "4.8"}</span>
-                      </div>
-                      <span className="text-muted-foreground">•</span>
-                      <span className="text-sm text-muted-foreground">{doc.patients?.toLocaleString() || "500+"} patients</span>
-                      {doc.available && (
-                        <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse" />
-                      )}
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                      <span className="font-semibold text-foreground">{doc.rating?.toFixed(1) || "4.8"}</span>
                     </div>
-
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {doc.bio || `Experienced ${doc.specialty || "specialist"} with years of practice in providing quality healthcare.`}
-                    </p>
-
-                    <Button
-                      className="w-full gap-2"
-                      variant="outline"
-                      onClick={() => navigate("/signup")}
-                    >
-                      Book Appointment <ArrowRight className="w-4 h-4" />
-                    </Button>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground">{doc.patients?.toLocaleString() || "500+"} patients</span>
+                    {doc.available && (
+                      <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse" />
+                    )}
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
+
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {doc.bio || `Experienced ${doc.specialty || "specialist"} with years of practice in providing quality healthcare.`}
+                  </p>
+
+                  <Button
+                    className="w-full gap-2"
+                    variant="outline"
+                    onClick={() => navigate("/signup")}
+                  >
+                    Book Appointment <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -814,14 +782,17 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+          >
             {features.map((feature, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 40, rotateX: -10 }}
-                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                variants={scaleIn}
                 whileHover={{ scale: 1.03, y: -5 }}
                 className={`group relative bg-card rounded-2xl border border-border/60 p-6 hover:shadow-xl transition-all duration-300 overflow-hidden`}
               >
@@ -842,7 +813,7 @@ const Home = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -868,14 +839,17 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12, duration: 0.6 }}
+                variants={scaleIn}
                 whileHover={{ scale: 1.02, y: -5 }}
                 className="bg-card rounded-2xl border border-border/60 p-6 sm:p-8 hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative"
               >
@@ -911,7 +885,7 @@ const Home = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -929,8 +903,7 @@ const Home = () => {
               <motion.div
                 animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
                 transition={{ duration: 6, repeat: Infinity }}
-                className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/10 rounded-full blur-3xl"
-              />
+                className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/10 rounded-full blur-3xl" />
             </div>
 
             <div className="relative z-10 max-w-3xl mx-auto">
@@ -980,7 +953,7 @@ const Home = () => {
               </motion.div>
             </div>
 
-            {/* Floating elements */}
+            {/* Floating decorative elements */}
             <div className="absolute top-8 left-8 opacity-10">
               <Heart className="w-16 h-16 text-white" />
             </div>
