@@ -5,6 +5,7 @@ import { Activity, ArrowRight, Shield, Stethoscope, UserRound } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/api';
 
 const roles = [
   { key: 'admin',   label: 'Admin',   desc: 'Full system access',            icon: Shield,      color: 'text-primary', bg: 'bg-primary/10' },
@@ -14,7 +15,7 @@ const roles = [
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { user, register } = useAuth();
+  const { user } = useAuth();
   const [role, setRole] = useState('patient');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,8 +39,13 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      await register({ name, email, password, role });
-      navigate('/login');
+      // Register using API directly (do not set auth state yet)
+      await api.register({ name, email, password, role });
+      // Store credentials for auto-login after OTP
+      localStorage.setItem('temp_password', password);
+      localStorage.setItem('temp_role', role);
+      // Navigate to OTP verification page
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {

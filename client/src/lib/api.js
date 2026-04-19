@@ -11,9 +11,9 @@ const LAB_SERVICES = [
 ];
 
 let MOCK_USERS = {
-  'admin@medicare.com':       { id: '1', name: 'Admin User',      email: 'admin@medicare.com',       role: 'admin',   password: 'password', phone: '', status: 'active' },
-  'sarah.smith@medicare.com': { id: '2', name: 'Dr. Sarah Smith', email: 'sarah.smith@medicare.com', role: 'doctor',  password: 'password', phone: '', status: 'active' },
-  'patient@medicare.com':     { id: '3', name: 'John Patient',    email: 'patient@medicare.com',     role: 'patient', password: 'password', phone: '', status: 'active' },
+  'admin@medicare.com':       { id: '1', name: 'Admin User',      email: 'admin@medicare.com',       role: 'admin',   password: 'password', phone: '', status: 'active', isVerified: true },
+  'sarah.smith@medicare.com': { id: '2', name: 'Dr. Sarah Smith', email: 'sarah.smith@medicare.com', role: 'doctor',  password: 'password', phone: '', status: 'active', isVerified: true },
+  'patient@medicare.com':     { id: '3', name: 'John Patient',    email: 'patient@medicare.com',     role: 'patient', password: 'password', phone: '', status: 'active', isVerified: true },
 };
 
 const MOCK_DOCTORS = [
@@ -159,15 +159,15 @@ const mock = {
     if (!u || u.password !== password) throw new Error('Invalid email or password');
     if (role && u.role !== role) throw new Error(`This account is not a ${role}. Use ${u.role} credentials.`);
     const token = btoa(JSON.stringify({ id: u.id, role: u.role, exp: Date.now() + 7*24*3600*1000 }));
-    return { token, user: { id: u.id, name: u.name, email: u.email, role: u.role } };
+    return { token, user: { id: u.id, name: u.name, email: u.email, role: u.role, isVerified: u.isVerified } };
   },
   async register({ name, email, password, role }) {
     await delay();
     if (MOCK_USERS[email?.toLowerCase()]) throw new Error('Email already in use');
     const id = uid();
-    MOCK_USERS[email.toLowerCase()] = { id, name, email: email.toLowerCase(), role: role || 'patient', password, phone: '', status: 'active' };
+    MOCK_USERS[email.toLowerCase()] = { id, name, email: email.toLowerCase(), role: role || 'patient', password, phone: '', status: 'active', isVerified: false };
     const token = btoa(JSON.stringify({ id, role, exp: Date.now() + 7*24*3600*1000 }));
-    return { token, user: { id, name, email: email.toLowerCase(), role: role || 'patient' } };
+    return { token, user: { id, name, email: email.toLowerCase(), role: role || 'patient', isVerified: false } };
   },
   async me() {
     await delay();
@@ -176,7 +176,7 @@ const mock = {
     const payload = JSON.parse(atob(raw));
     const u = Object.values(MOCK_USERS).find(x => x.id === payload.id);
     if (!u) throw new Error('User not found');
-    return { id: u.id, name: u.name, email: u.email, role: u.role, phone: u.phone || '' };
+    return { id: u.id, name: u.name, email: u.email, role: u.role, phone: u.phone || '', isVerified: u.isVerified };
   },
   async updateProfile({ name, phone }) {
     await delay();
@@ -185,6 +185,24 @@ const mock = {
     const u = Object.values(MOCK_USERS).find(x => x.id === payload.id);
     if (u) { u.name = name; u.phone = phone; }
     return { id: u.id, name, email: u.email, role: u.role, phone };
+  },
+
+  async verifyOTP({ email, otp }) {
+    await delay();
+    const u = MOCK_USERS[email?.toLowerCase()];
+    if (!u) throw new Error('User not found');
+    if (u.isVerified) throw new Error('Email already verified');
+    // Mock OTP validation - just set verified
+    u.isVerified = true;
+    return { message: 'OTP verified successfully' };
+  },
+
+  async resendOTP({ email }) {
+    await delay();
+    const u = MOCK_USERS[email?.toLowerCase()];
+    if (!u) throw new Error('User not found');
+    if (u.isVerified) throw new Error('Email already verified');
+    return { message: 'OTP resent successfully' };
   },
 
   // Users (admin)
@@ -583,7 +601,7 @@ fetch(`${BASE}/health`, { signal: AbortSignal.timeout(10000) })
 
 // Smart dispatcher: tries backend first, falls back to mock only for non-critical ops
 // Auth operations must use backend - fail if backend is unavailable (don't silently use mock)
-const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/me', '/auth/profile'];
+const AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/me', '/auth/profile', '/auth/verify-otp', '/auth/resend-otp'];
 function isAuthPath(path) {
   return AUTH_PATHS.some(p => path.startsWith(p));
 }
@@ -666,6 +684,8 @@ async function dispatch(mockFn, realPath, realOpts) {
 export const api = {
   login:         (body)    => dispatch(() => mock.login(body),                         '/auth/login',       { method:'POST', body: JSON.stringify(body) }),
   register:      (body)    => dispatch(() => mock.register(body),                      '/auth/register',    { method:'POST', body: JSON.stringify(body) }),
+  verifyOTP:     (body)    => dispatch(() => mock.verifyOTP(body),                     '/auth/verify-otp',  { method:'POST', body: JSON.stringify(body) }),
+  resendOTP:     (body)    => dispatch(() => mock.resendOTP(body),                     '/auth/resend-otp',  { method:'POST', body: JSON.stringify(body) }),
   me:            ()        => dispatch(() => mock.me(),                                '/auth/me'),
   updateProfile: (body)    => dispatch(() => mock.updateProfile(body),                 '/auth/profile',     { method:'PUT',  body: JSON.stringify(body) }),
   dashboardStats:()        => dispatch(() => mock.dashboardStats(),                    '/dashboard/stats'),

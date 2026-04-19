@@ -51,7 +51,14 @@ export default function Login() {
       await login(email, password, role);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Login failed');
+      if (err.message === 'Please verify your email first') {
+        // Store credentials for auto-login after OTP verification
+        localStorage.setItem('temp_password', password);
+        localStorage.setItem('temp_role', role);
+        navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+      } else {
+        setError(err.message || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
