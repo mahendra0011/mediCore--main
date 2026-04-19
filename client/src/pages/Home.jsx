@@ -1,43 +1,31 @@
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, CreditCard,
   Shield, Clock, HeartPulse, ChevronRight, Zap, Star, Quote, Phone, MapPin,
   Award, Heart, Baby, Brain, Bone, Eye, Microscope, Thermometer, CheckCircle,
-  Play, Users, Hospital, Sparkles, ArrowUp, ArrowDown, Menu, X
+  Play, Users, Hospital, Sparkles, ArrowUp, ArrowDown, Menu, X, Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 
-// Animation variants
-const fadeUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: i => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }
-  })
-};
+// Register GSAP plugin
+gsap.registerPlugin(ScrollTrigger);
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+const services = [
+  { icon: HeartPulse, name: "Cardiology", desc: "Heart care & treatment", color: "from-red-500/10 to-red-500/5", iconColor: "text-red-600" },
+  { icon: Brain, name: "Neurology", desc: "Brain & nervous system", color: "from-purple-500/10 to-purple-500/5", iconColor: "text-purple-600" },
+  { icon: Bone, name: "Orthopedics", desc: "Bone & joint care", color: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
+  { icon: Eye, name: "Ophthalmology", desc: "Eye care & surgery", color: "from-blue-500/10 to-blue-500/5", iconColor: "text-blue-600" },
+  { icon: Baby, name: "Pediatrics", desc: "Child healthcare", color: "from-pink-500/10 to-pink-500/5", iconColor: "text-pink-600" },
+  { icon: Microscope, name: "Pathology", desc: "Lab & diagnostics", color: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
+];
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: i => ({
-    opacity: 1, scale: 1,
-    transition: { delay: i * 0.05, duration: 0.5, ease: "easeOut" }
-  })
-};
-
-// Doctor images using UI Avatars (placeholder doctor photos)
 const doctorImages = [
   "https://i.pravatar.cc/300?img=12",
   "https://i.pravatar.cc/300?img=32",
@@ -78,30 +66,86 @@ const statsData = [
   { label: "Years Experience", value: 15, suffix: "+", icon: Award }
 ];
 
-const services = [
-  { icon: HeartPulse, name: "Cardiology", desc: "Heart care & treatment", color: "from-red-500/10 to-red-500/5", iconColor: "text-red-600" },
-  { icon: Brain, name: "Neurology", desc: "Brain & nervous system", color: "from-purple-500/10 to-purple-500/5", iconColor: "text-purple-600" },
-  { icon: Bone, name: "Orthopedics", desc: "Bone & joint care", color: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
-  { icon: Eye, name: "Ophthalmology", desc: "Eye care & surgery", color: "from-blue-500/10 to-blue-500/5", iconColor: "text-blue-600" },
-  { icon: Baby, name: "Pediatrics", desc: "Child healthcare", color: "from-pink-500/10 to-pink-500/5", iconColor: "text-pink-600" },
-  { icon: Microscope, name: "Pathology", desc: "Lab & diagnostics", color: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
+const features = [
+  {
+    icon: Shield,
+    title: "Certified Specialists",
+    desc: "All our doctors are board-certified with years of experience in their fields.",
+    color: "from-emerald-500/10 to-emerald-500/5",
+    iconColor: "text-emerald-600"
+  },
+  {
+    icon: Clock,
+    title: "24/7 Support",
+    desc: "Round-the-clock medical assistance and emergency care when you need it most.",
+    color: "from-blue-500/10 to-blue-500/5",
+    iconColor: "text-blue-600"
+  },
+  {
+    icon: Hospital,
+    title: "Modern Facilities",
+    desc: "State-of-the-art equipment and comfortable environment for your care.",
+    color: "from-violet-500/10 to-violet-500/5",
+    iconColor: "text-violet-600"
+  },
+  {
+    icon: CreditCard,
+    title: "Affordable Care",
+    desc: "Quality healthcare at transparent pricing with flexible payment options.",
+    color: "from-amber-500/10 to-amber-500/5",
+    iconColor: "text-amber-600"
+  },
+  {
+    icon: Users,
+    title: "Patient-Centered",
+    desc: "Your wellbeing is our priority. Personalized care plans for every individual.",
+    color: "from-rose-500/10 to-rose-500/5",
+    iconColor: "text-rose-600"
+  },
+  {
+    icon: Shield,
+    title: "Privacy First",
+    desc: "Your medical information is protected with bank-level security and confidentiality.",
+    color: "from-cyan-500/10 to-cyan-500/5",
+    iconColor: "text-cyan-600"
+  }
 ];
 
 const Home = () => {
   const navigate = useNavigate();
   const [doctorsList, setDoctorsList] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [countersVisible, setCountersVisible] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Scroll-based animations
-  const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 500], [1, 0.9]);
-
-  // Stats counter animation
-  const [counters, setCounters] = useState(statsData.map(() => 0));
-  const [countersVisible, setCountersVisible] = useState(false);
+  // Refs
+  const heroRef = useRef(null);
   const statsRef = useRef(null);
+  const servicesRef = useRef(null);
+  const doctorsRef = useRef(null);
+  const featuresRef = useRef(null);
+  const testimonialsRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  // Parallax refs
+  const parallaxBg1 = useRef(null);
+  const parallaxBg2 = useRef(null);
+  const parallaxBg3 = useRef(null);
+
+  // Magnetic refs
+  const magneticBtn1 = useRef(null);
+  const magneticBtn2 = useRef(null);
+
+  // Tilt refs
+  const doctorCardRefs = useRef([]);
+
+  // Scroll-based transforms
+  const { scrollY } = useScroll();
+  const heroOpacity = useTransform(scrollY, [0, 600], [1, 0]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 0.9]);
+  const heroY = useTransform(scrollY, [0, 600], [0, 200]);
+
+  // Counter state
+  const [counters, setCounters] = useState(statsData.map(() => 0));
 
   useEffect(() => {
     const load = async () => {
@@ -115,67 +159,107 @@ const Home = () => {
     load();
   }, []);
 
-  // Intersection Observer for stats animation
+  // GSAP ScrollTrigger animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !countersVisible) {
-          setCountersVisible(true);
-          // Animate counters
-          counters.map((_, idx) => {
-            const target = statsData[idx].value;
-            const duration = 2000;
-            const steps = 60;
-            const increment = target / steps;
-            let current = 0;
-            const timer = setInterval(() => {
-              current += increment;
-              if (current >= target) {
-                current = target;
-                clearInterval(timer);
-              }
-              setCounters(prev => {
-                const newCounters = [...prev];
-                newCounters[idx] = Math.floor(current);
-                return newCounters;
-              });
-            }, duration / steps);
-          });
-        }
-      },
-      { threshold: 0.5 }
-    );
+    // Parallax background orbs
+    gsap.to(parallaxBg1.current, {
+      yPercent: -30,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      }
+    });
 
-    if (statsRef.current) observer.observe(statsRef.current);
-    return () => observer.disconnect();
-  }, [countersVisible]);
+    gsap.to(parallaxBg2.current, {
+      yPercent: -20,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      }
+    });
+
+    gsap.to(parallaxBg3.current, {
+      yPercent: -25,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: heroRef.current,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      }
+    });
+
+    // Stats counter animation
+    ScrollTrigger.create({
+      trigger: statsRef.current,
+      start: 'top 80%',
+      onEnter: () => {
+        setCountersVisible(true);
+        counters.forEach((_, idx) => {
+          const target = statsData[idx].value;
+          const duration = 2.5;
+          const steps = 60;
+          const increment = target / steps;
+          let current = 0;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
+            }
+            setCounters(prev => {
+              const newCounters = [...prev];
+              newCounters[idx] = Math.floor(current);
+              return newCounters;
+            });
+          }, duration / steps);
+        });
+      },
+      once: true
+    });
+
+    // Cleanup
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, [counters]);
+
+  // Smooth scroll for anchors
+  const handleAnchorClick = (e) => {
+    const href = e.currentTarget.getAttribute('href');
+    if (href?.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        gsap.to(window, {
+          duration: 1.5,
+          scrollTo: { y: target, offsetY: -80 },
+          ease: 'power3.inOut'
+        });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Animated Background Orbs */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-1/4 -left-1/4 w-[900px] h-[900px] rounded-full bg-gradient-to-br from-primary/20 via-blue-500/15 to-transparent blur-3xl"
-        />
-        <motion.div
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.1, 0.2, 0.1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-emerald-500/15 via-cyan-500/10 to-transparent blur-3xl"
-        />
-        <motion.div
-          animate={{ y: [0, 30, 0], opacity: [0.08, 0.12, 0.08] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-rose-500/10 to-transparent blur-3xl"
-        />
+      {/* Parallax Background Orbs */}
+      <div ref={heroRef} className="fixed inset-0 pointer-events-none -z-10">
+        <div ref={parallaxBg1} className="absolute -top-1/4 -left-1/4 w-[900px] h-[900px] rounded-full bg-gradient-to-br from-primary/20 via-blue-500/15 to-transparent blur-3xl" />
+        <div ref={parallaxBg2} className="absolute top-1/3 -right-1/4 w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-emerald-500/15 via-cyan-500/10 to-transparent blur-3xl" />
+        <div ref={parallaxBg3} className="absolute bottom-0 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-rose-500/10 to-transparent blur-3xl" />
       </div>
 
       {/* Navigation */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
         className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/40 shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,11 +270,11 @@ const Home = () => {
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+              <div className="relative group">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
                   <Activity className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <div className="absolute -inset-1 rounded-2xl bg-primary/20 -z-10 blur-sm" />
+                <div className="absolute -inset-1 rounded-2xl bg-primary/20 blur-md -z-10 group-hover:bg-primary/30 transition-all" />
               </div>
               <span className="font-heading text-2xl font-bold bg-gradient-to-r from-primary via-blue-600 to-violet-600 bg-clip-text text-transparent hidden sm:block">
                 MediCare
@@ -206,7 +290,8 @@ const Home = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                  onClick={handleAnchorClick}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group py-2"
                 >
                   {item}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
@@ -220,6 +305,7 @@ const Home = () => {
                 Sign In
               </Button>
               <Button
+                ref={magneticBtn1}
                 size="sm"
                 className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20"
                 onClick={() => navigate("/signup")}
@@ -269,8 +355,11 @@ const Home = () => {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="absolute inset-0">
+      <section
+        ref={heroRef}
+        className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      >
+        <motion.div style={{ opacity: heroOpacity, y: heroY }} className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         </motion.div>
 
@@ -278,14 +367,15 @@ const Home = () => {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Content */}
             <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
+              initial={{ opacity: 0, x: -80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
               className="text-center lg:text-left"
             >
               <motion.div
-                variants={fadeUp}
-                custom={0}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-blue-500/10 to-emerald-500/10 border border-primary/20 text-sm font-medium mb-6 sm:mb-8"
               >
                 <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
@@ -295,40 +385,46 @@ const Home = () => {
               </motion.div>
 
               <motion.h1
-                variants={fadeUp}
-                custom={1}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.7 }}
                 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extreme-bold text-foreground leading-tight tracking-tight"
               >
                 Your Health,
                 <br />
-                <span className="relative">
+                <span className="relative inline-block">
                   <span className="bg-gradient-to-r from-primary via-blue-600 to-violet-600 bg-clip-text text-transparent">
                     Our Priority
                   </span>
-                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                    <motion.path
+                  <motion.svg
+                    className="absolute -bottom-2 left-0 w-full"
+                    viewBox="0 0 300 12"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 0.8, duration: 1, ease: 'easeOut' }}
+                  >
+                    <path
                       d="M2 6c50-10 100 0 150-5s100 5 150 0"
-                      stroke="url(#gradient)"
+                      stroke="url(#gradient2)"
                       strokeWidth="4"
                       strokeLinecap="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
                     />
                     <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="hsl(var(--primary))" />
                         <stop offset="50%" stopColor="hsl(var(--primary))" />
                         <stop offset="100%" stopColor="hsl(var(--primary))" />
                       </linearGradient>
                     </defs>
-                  </svg>
+                  </motion.svg>
                 </span>
               </motion.h1>
 
               <motion.p
-                variants={fadeUp}
-                custom={2}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.7 }}
                 className="text-lg sm:text-xl text-muted-foreground mt-6 leading-relaxed max-w-2xl mx-auto lg:mx-0"
               >
                 Experience world-class healthcare with our team of expert specialists.
@@ -338,8 +434,9 @@ const Home = () => {
 
               {/* Feature badges */}
               <motion.div
-                variants={fadeUp}
-                custom={3}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.7 }}
                 className="flex flex-wrap justify-center lg:justify-start gap-3 mt-8"
               >
                 {[
@@ -361,11 +458,13 @@ const Home = () => {
 
               {/* CTA Buttons */}
               <motion.div
-                variants={fadeUp}
-                custom={4}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.7 }}
                 className="flex flex-col sm:flex-row gap-4 mt-10 justify-center lg:justify-start"
               >
                 <Button
+                  ref={magneticBtn2}
                   size="lg"
                   className="gap-2 text-base px-8 h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl shadow-primary/25 group relative overflow-hidden"
                   onClick={() => navigate("/signup")}
@@ -389,57 +488,64 @@ const Home = () => {
 
             {/* Right - Doctor Cards Grid */}
             <motion.div
-              initial={{ opacity: 0, x: 80, rotateY: -15 }}
-              animate={{ opacity: 1, x: 0, rotateY: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+              initial={{ opacity: 0, x: 80 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
               className="relative hidden lg:block"
             >
               <div className="relative grid grid-cols-2 gap-4 max-w-lg mx-auto">
-                {doctorImages.slice(0, 4).map((img, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
-                    whileHover={{ scale: 1.05, y: -5, rotate: i % 2 === 0 ? 2 : -2 }}
-                    className={`relative overflow-hidden rounded-2xl bg-card border border-border/60 p-3 shadow-xl cursor-pointer group ${i === 0 ? 'row-span-2' : ''}`}
-                  >
-                    <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
-                      <img
-                        src={img}
-                        alt={`Doctor ${i + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {i === 0 && (
-                        <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <p className="text-white text-xs font-semibold">Senior Cardiologist</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <p className="font-heading font-semibold text-card-foreground text-sm truncate">
-                        Dr. {["Sarah Smith", "James Wilson", "Emily Chen", "Michael Brown"][i]}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {["Cardiologist", "Neurologist", "Pediatrician", "Orthopedic"][i]}
-                      </p>
-                    </div>
-                    {/* Floating rating */}
+                {doctorImages.slice(0, 4).map((img, i) => {
+                  const cardRef = (el) => { doctorCardRefs.current[i] = el; };
+                  return (
                     <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"
+                      key={i}
+                      ref={cardRef}
+                      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                      whileHover={{ scale: 1.02, y: -5 }}
+                      className={`relative overflow-hidden rounded-2xl bg-card border border-border/60 p-3 shadow-xl cursor-pointer group ${i === 0 ? 'row-span-2' : ''}`}
                     >
-                      <Star className="w-4 h-4 text-white fill-white" />
+                      <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
+                        <img
+                          src={img}
+                          alt={`Doctor ${i + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        {i === 0 && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            whileHover={{ opacity: 1 }}
+                            className="absolute bottom-3 left-2 right-2"
+                          >
+                            <p className="text-white text-xs font-semibold">Senior Cardiologist</p>
+                          </motion.div>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className="font-heading font-semibold text-card-foreground text-sm truncate">
+                          Dr. {["Sarah Smith", "James Wilson", "Emily Chen", "Michael Brown"][i]}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {["Cardiologist", "Neurologist", "Pediatrician", "Orthopedic"][i]}
+                        </p>
+                      </div>
+                      <motion.div
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"
+                      >
+                        <Star className="w-4 h-4 text-white fill-white" />
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Floating Badges */}
               <motion.div
-                animate={{ y: [-10, 10, -10], rotate: [0, 5, -5, 0] }}
+                animate={{ y: [-10, 10, -10], rotate: [0, 3, -3, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -bottom-4 -left-4 bg-card rounded-2xl p-4 shadow-2xl border border-border/60"
               >
@@ -455,7 +561,7 @@ const Home = () => {
               </motion.div>
 
               <motion.div
-                animate={{ x: [0, 10, 0], y: [0, -10, 0] }}
+                animate={{ x: [0, 8, 0], y: [0, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute -top-4 -right-4 bg-card rounded-xl p-3 shadow-xl border border-border/60"
               >
@@ -501,6 +607,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
+                whileHover={{ scale: 1.03, y: -5 }}
                 className="group relative bg-card rounded-2xl border border-border/60 p-6 hover:shadow-xl hover:border-primary/30 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -524,7 +631,7 @@ const Home = () => {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-muted/10 to-muted/30">
+      <section id="services" ref={servicesRef} className="py-20 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-muted/10 to-muted/30">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -545,23 +652,20 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, i) => (
               <motion.div
                 key={i}
-                variants={scaleIn}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                whileHover={{ y: -10, scale: 1.02 }}
                 className={`group relative bg-card rounded-2xl border border-border/60 p-6 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 overflow-hidden`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <service.icon className={`w-7 h-7 ${service.iconColor}`} />
                   </div>
                   <h3 className="font-heading font-bold text-xl text-card-foreground mb-2">
@@ -570,17 +674,22 @@ const Home = () => {
                   <p className="text-muted-foreground mb-4">{service.desc}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-primary">Learn more</span>
-                    <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-2 transition-transform" />
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                    >
+                      <ArrowRight className="w-4 h-4 text-primary" />
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Top Doctors Section */}
-      <section id="doctors" className="py-20 sm:py-28 px-4 sm:px-6">
+      <section id="doctors" ref={doctorsRef} className="py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -601,65 +710,68 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {(doctorsList.length > 0 ? doctorsList : []).map((doc, i) => (
-              <motion.div
-                key={doc._id || i}
-                variants={scaleIn}
-                whileHover={{ y: -12, transition: { duration: 0.2 } }}
-                className="group bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-300"
-              >
-                <div className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-blue-500/10">
-                  <img
-                    src={doctorImages[i % doctorImages.length]}
-                    alt={doc.name || `Doctor ${i + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <div className="flex items-center justify-between text-white">
-                      <div>
-                        <h3 className="font-heading font-bold text-lg leading-tight">{doc.name || `Dr. ${["Smith", "Patel", "Lee", "Garcia", "Wilson", "Mitchell"][i]}`}</h3>
-                        <p className="text-sm opacity-90">{doc.specialty || ["Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Gynecologist", "Orthopedic"][i]}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(doctorsList.length > 0 ? doctorsList : []).map((doc, i) => {
+              const cardRef = (el) => { doctorCardRefs.current[i] = el; };
+              return (
+                <motion.div
+                  key={doc._id || i}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.5 }}
+                  whileHover={{ y: -12 }}
+                  className="group bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-2xl hover:border-primary/30 transition-all duration-300"
+                  ref={cardRef}
+                >
+                  <div className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-blue-500/10">
+                    <motion.img
+                      src={doctorImages[i % doctorImages.length]}
+                      alt={doc.name || `Doctor ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <div className="flex items-center justify-between text-white">
+                        <div>
+                          <h3 className="font-heading font-bold text-lg leading-tight">{doc.name || `Dr. ${["Smith", "Patel", "Lee", "Garcia", "Wilson", "Mitchell"][i]}`}</h3>
+                          <p className="text-sm opacity-90">{doc.specialty || ["Cardiologist", "Dermatologist", "Neurologist", "Pediatrician", "Gynecologist", "Orthopedic"][i]}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      <span className="font-semibold text-foreground">{doc.rating?.toFixed(1) || "4.8"}</span>
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <span className="font-semibold text-foreground">{doc.rating?.toFixed(1) || "4.8"}</span>
+                      </div>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-sm text-muted-foreground">{doc.patients?.toLocaleString() || "500+"} patients</span>
+                      {doc.available && (
+                        <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse" />
+                      )}
                     </div>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground">{doc.patients?.toLocaleString() || "500+"} patients</span>
-                    {doc.available && (
-                      <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                    )}
+
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {doc.bio || `Experienced ${doc.specialty || "specialist"} with years of practice in providing quality healthcare.`}
+                    </p>
+
+                    <Button
+                      className="w-full gap-2"
+                      variant="outline"
+                      onClick={() => navigate("/signup")}
+                    >
+                      Book Appointment <ArrowRight className="w-4 h-4" />
+                    </Button>
                   </div>
-
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {doc.bio || `Experienced ${doc.specialty || "specialist"} with years of practice in providing quality healthcare.`}
-                  </p>
-
-                  <Button
-                    className="w-full gap-2"
-                    variant="outline"
-                    onClick={() => navigate("/signup")}
-                  >
-                    Book Appointment <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                </motion.div>
+              );
+            })}
+          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -681,7 +793,7 @@ const Home = () => {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-muted/20 to-muted/30">
+      <section id="about" ref={featuresRef} className="py-20 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-muted/20 to-muted/30">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -703,64 +815,24 @@ const Home = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {[
-              {
-                icon: Shield,
-                title: "Certified Specialists",
-                desc: "All our doctors are board-certified with years of experience in their fields.",
-                color: "from-emerald-500/10 to-emerald-500/5",
-                iconColor: "text-emerald-600"
-              },
-              {
-                icon: Clock,
-                title: "24/7 Support",
-                desc: "Round-the-clock medical assistance and emergency care when you need it most.",
-                color: "from-blue-500/10 to-blue-500/5",
-                iconColor: "text-blue-600"
-              },
-              {
-                icon: Hospital,
-                title: "Modern Facilities",
-                desc: "State-of-the-art equipment and comfortable environment for your care.",
-                color: "from-violet-500/10 to-violet-500/5",
-                iconColor: "text-violet-600"
-              },
-              {
-                icon: CreditCard,
-                title: "Affordable Care",
-                desc: "Quality healthcare at transparent pricing with flexible payment options.",
-                color: "from-amber-500/10 to-amber-500/5",
-                iconColor: "text-amber-600"
-              },
-              {
-                icon: Users,
-                title: "Patient-Centered",
-                desc: "Your wellbeing is our priority. Personalized care plans for every individual.",
-                color: "from-rose-500/10 to-rose-500/5",
-                iconColor: "text-rose-600"
-              },
-              {
-                icon: Shield,
-                title: "Privacy First",
-                desc: "Your medical information is protected with bank-level security and confidentiality.",
-                color: "from-cyan-500/10 to-cyan-500/5",
-                iconColor: "text-cyan-600"
-              }
-            ].map((feature, i) => (
+            {features.map((feature, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 40, rotateX: -10 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ scale: 1.03 }}
+                transition={{ delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                whileHover={{ scale: 1.03, y: -5 }}
                 className={`group relative bg-card rounded-2xl border border-border/60 p-6 hover:shadow-xl transition-all duration-300 overflow-hidden`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <motion.div
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                    whileHover={{ rotate: 5 }}
+                  >
                     <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
-                  </div>
+                  </motion.div>
                   <h3 className="font-heading font-bold text-xl text-card-foreground mb-3">
                     {feature.title}
                   </h3>
@@ -775,7 +847,7 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6">
+      <section id="contact" ref={testimonialsRef} className="py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -796,25 +868,21 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={i}
-                variants={scaleIn}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.6 }}
+                whileHover={{ scale: 1.02, y: -5 }}
                 className="bg-card rounded-2xl border border-border/60 p-6 sm:p-8 hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative"
               >
-                {/* Quote Icon */}
                 <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center">
                   <Quote className="w-5 h-5 text-primary/50" />
                 </div>
 
-                {/* Rating Stars */}
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, idx) => (
                     <Star
@@ -824,12 +892,10 @@ const Home = () => {
                   ))}
                 </div>
 
-                {/* Content */}
                 <p className="text-muted-foreground leading-relaxed mb-6 text-sm sm:text-base">
                   "{testimonial.content}"
                 </p>
 
-                {/* Author */}
                 <div className="flex items-center gap-3">
                   <img
                     src={testimonial.image}
@@ -845,12 +911,12 @@ const Home = () => {
                 </div>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6">
+      <section id="contact" ref={ctaRef} className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 60, scale: 0.95 }}
@@ -859,7 +925,6 @@ const Home = () => {
             transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-blue-600 to-violet-600 p-8 sm:p-16 text-center shadow-2xl"
           >
-            {/* Animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
               <motion.div
                 animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
@@ -915,7 +980,7 @@ const Home = () => {
               </motion.div>
             </div>
 
-            {/* Floating medical icons */}
+            {/* Floating elements */}
             <div className="absolute top-8 left-8 opacity-10">
               <Heart className="w-16 h-16 text-white" />
             </div>
@@ -926,25 +991,26 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Contact Info Section */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-muted/30">
+      {/* Contact Section */}
+      <section id="about" className="py-12 sm:py-16 px-4 sm:px-6 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Phone, title: "Emergency Hotline", desc: "+91 8299431275", color: "text-red-600" },
-              { icon: Mail, title: "Email Support", desc: "hexagonsservices@gmail.com", color: "text-blue-600" },
-              { icon: MapPin, title: "Visit Us", desc: "Lucknow, India", color: "text-emerald-600" }
+              { icon: Phone, title: "Emergency Hotline", desc: "+91 8299431275", color: "bg-red-500/10 text-red-600" },
+              { icon: Mail, title: "Email Support", desc: "hexagonsservices@gmail.com", color: "bg-blue-500/10 text-blue-600" },
+              { icon: MapPin, title: "Visit Us", desc: "Lucknow, India", color: "bg-emerald-500/10 text-emerald-600" }
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border/60"
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border/60 hover:shadow-lg transition-all"
               >
-                <div className={`w-12 h-12 rounded-xl bg-${item.color.split('-')[1]}-500/10 flex items-center justify-center`}>
-                  <item.icon className={`w-6 h-6 ${item.color}`} />
+                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center`}>
+                  <item.icon className="w-6 h-6" />
                 </div>
                 <div>
                   <p className="font-medium text-card-foreground">{item.title}</p>
