@@ -5,7 +5,7 @@ import {
   Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, CreditCard,
   Shield, Clock, HeartPulse, ChevronRight, Zap, Star, Quote, Phone, MapPin,
   Award, Heart, Baby, Brain, Bone, Eye, Microscope, Thermometer, CheckCircle,
-  Play, Users, Hospital, Sparkles, Menu, X
+  Play, Users, Hospital, Sparkles, Menu, X, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
