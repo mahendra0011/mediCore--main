@@ -56,12 +56,12 @@ const whyChooseUs = [
 ];
 
 const features = [
-  { icon: Video, title: "Video Consultation", desc: "Connect with doctors from home" },
   { icon: CalendarCheck, title: "Easy Booking", desc: "Book appointments in seconds" },
   { icon: FileCheck, title: "Digital Records", desc: "Access your records anywhere" },
   { icon: Wallet, title: "Flexible Payments", desc: "Multiple payment options" },
   { icon: Bell, title: "Appointment Reminders", desc: "Never miss your appointment" },
   { icon: Lock, title: "Secure Data", desc: "Your privacy is protected" },
+  { icon: HeartPulse, title: "Quality Care", desc: "Excellence in healthcare" },
 ];
 
 const testimonials = [
@@ -154,7 +154,7 @@ const Home = () => {
 
       {/* Navbar */}
       <motion.nav initial={{ y: -100 }} animate={{ y: 0 }} transition={{ duration: 0.6 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40">
+        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-2xl border-b border-border/40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
@@ -289,24 +289,29 @@ const Home = () => {
       </section>
 
       {/* Stats Counter Section */}
-      <section ref={statsRef} className="py-16 px-4 sm:px-6 bg-gradient-to-r from-primary/5 via-blue-500/5 to-violet-500/5">
+      <section ref={statsRef} className="py-20 px-4 sm:px-6 bg-gradient-to-r from-primary/10 via-blue-500/10 to-violet-500/10">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {statsData.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="text-center"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15, type: "spring", stiffness: 100 }}
+                whileHover={{ scale: 1.05 }}
+                className="text-center group"
               >
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-8 h-8 text-primary" />
+                <div className="w-20 h-20 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/30 transition-colors">
+                  <stat.icon className="w-10 h-10 text-primary" />
                 </div>
-                <p className="text-4xl font-bold text-foreground">
+                <motion.p
+                  className="text-5xl lg:text-6xl font-bold text-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={countersVisible ? { opacity: 1 } : {}}
+                >
                   {counters[i].toLocaleString()}{stat.suffix}
-                </p>
-                <p className="text-muted-foreground">{stat.label}</p>
+                </motion.p>
+                <p className="text-lg text-muted-foreground mt-2 font-medium">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -337,10 +342,10 @@ const Home = () => {
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                whileHover={{ scale: 1.05 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
+                whileHover={{ scale: 1.08, y: -5 }}
                 className="bg-card rounded-xl border border-border/60 p-4 text-center hover:shadow-lg hover:border-primary/30 transition-all"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
