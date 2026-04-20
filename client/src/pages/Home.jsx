@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Microscope, Syringe, Ambulance, Check, Circle, Send, Droplets, TestTube, Thermometer, Sparkles } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Activity, ArrowRight, Stethoscope, UserRound, CalendarDays, FileText, CreditCard, Shield, Clock, HeartPulse, ChevronRight, Zap, BarChart3, FileUp, Download, Mail, Image, Users, Bell, Laptop, Database, Cloud, Star, Quote, Play, CheckCircle, Phone, Search, MapPin, Award, Heart, Baby, Brain, Bone, Eye, Microscope, Syringe, Ambulance, Check, Circle, Send, Droplets, TestTube, Thermometer, Sparkles, Building2, CalendarCheck, TrendingUp, BadgeCheck, Video, FileCheck, Wallet, Lock, CircleDollarSign, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 
 const heroImage = "https://cdn.hms.hospital/123/01KNC4WSYHF1637VJ39K3KVJ2M.png";
@@ -19,6 +19,13 @@ const fadeUp = {
   })
 };
 
+const statsData = [
+  { label: "Expert Doctors", value: 50, suffix: "+", icon: Stethoscope },
+  { label: "Happy Patients", value: 20000, suffix: "+", icon: Users },
+  { label: "Appointments", value: 50000, suffix: "+", icon: CalendarDays },
+  { label: "Years Experience", value: 15, suffix: "+", icon: Award }
+];
+
 const services = [
   { icon: Thermometer, name: "Blood Pressure Check", price: "Rs 100" },
   { icon: Droplets, name: "Blood Sugar Test", price: "Rs 150" },
@@ -26,6 +33,8 @@ const services = [
   { icon: Image, name: "X-Ray Scan", price: "Rs 500" },
   { icon: HeartPulse, name: "ECG Test", price: "Rs 400" },
   { icon: Microscope, name: "Thyroid Panel", price: "Rs 500" },
+  { icon: Video, name: "Teleconsultation", price: "Rs 300" },
+  { icon: Syringe, name: "Vaccination", price: "Rs 250" },
 ];
 
 const specialties = [
@@ -46,6 +55,15 @@ const whyChooseUs = [
   { icon: CheckCircle, title: "Privacy First", desc: "Your medical information is protected with bank-level security and confidentiality.", color: "from-cyan-500/10 to-cyan-500/5", iconColor: "text-cyan-600" },
 ];
 
+const features = [
+  { icon: Video, title: "Video Consultation", desc: "Connect with doctors from home" },
+  { icon: CalendarCheck, title: "Easy Booking", desc: "Book appointments in seconds" },
+  { icon: FileCheck, title: "Digital Records", desc: "Access your records anywhere" },
+  { icon: Wallet, title: "Flexible Payments", desc: "Multiple payment options" },
+  { icon: Bell, title: "Appointment Reminders", desc: "Never miss your appointment" },
+  { icon: Lock, title: "Secure Data", desc: "Your privacy is protected" },
+];
+
 const testimonials = [
   { name: "Sarah Johnson", role: "Patient", image: "https://i.pravatar.cc/100?img=5", content: "The care I received was exceptional. The doctors took time to explain everything and made me feel comfortable throughout my treatment.", rating: 5 },
   { name: "Mike Chen", role: "Patient", image: "https://i.pravatar.cc/100?img=11", content: "Outstanding service! The booking process was smooth and the doctor was incredibly knowledgeable. Highly recommend MediCare.", rating: 5 },
@@ -64,6 +82,9 @@ const doctors = [
 const Home = () => {
   const navigate = useNavigate();
   const [doctorsList, setDoctorsList] = useState([]);
+  const [counters, setCounters] = useState(statsData.map(() => 0));
+  const [countersVisible, setCountersVisible] = useState(false);
+  const statsRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -77,8 +98,52 @@ const Home = () => {
     load();
   }, []);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !countersVisible) {
+          setCountersVisible(true);
+          counters.forEach((_, idx) => {
+            const target = statsData[idx].value;
+            const duration = 2500;
+            const steps = 60;
+            const increment = target / steps;
+            let current = 0;
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              setCounters(prev => {
+                const newCounters = [...prev];
+                newCounters[idx] = Math.floor(current);
+                return newCounters;
+              });
+            }, duration / steps);
+          });
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, [countersVisible]);
+
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
+
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      {/* Emergency Banner */}
+      <div className="bg-red-600 text-white py-2 px-4 text-center text-sm">
+        <span className="flex items-center justify-center gap-2">
+          <Ambulance className="w-4 h-4" />
+          <span className="font-semibold">Emergency:</span> Call +91 8299431275 for 24/7 medical assistance
+        </span>
+      </div>
+
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 8, repeat: Infinity }}
@@ -223,6 +288,31 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Stats Counter Section */}
+      <section ref={statsRef} className="py-16 px-4 sm:px-6 bg-gradient-to-r from-primary/5 via-blue-500/5 to-violet-500/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {statsData.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-4xl font-bold text-foreground">
+                  {counters[i].toLocaleString()}{stat.suffix}
+                </p>
+                <p className="text-muted-foreground">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Quick Actions */}
       <section className="py-12 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
@@ -236,6 +326,30 @@ const Home = () => {
             <Button variant="outline" className="h-16 text-lg gap-3 py-4">
               <CalendarDays className="w-5 h-5" /> Book Appointment
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {features.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ scale: 1.05 }}
+                className="bg-card rounded-xl border border-border/60 p-4 text-center hover:shadow-lg hover:border-primary/30 transition-all"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <feature.icon className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">{feature.title}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -393,8 +507,41 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Services Section */}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" variants={fadeUp} className="text-center mb-14">
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">Our Services</h2>
+            <p className="text-muted-foreground mt-3">Comprehensive healthcare services for you and your family</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {services.map((service, i) => (
+              <motion.div
+                key={service.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ scale: 1.03 }}
+                className="bg-card rounded-xl border border-border/60 p-5 hover:shadow-lg hover:border-primary/30 transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <service.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{service.name}</h3>
+                    <p className="text-sm text-primary font-medium">{service.price}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6">
+      <section id="testimonials" className="py-20 px-4 sm:px-6 bg-gradient-to-b from-muted/10 to-transparent">
         <div className="max-w-7xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" variants={fadeUp} className="text-center mb-14">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
@@ -476,7 +623,37 @@ const Home = () => {
         </motion.div>
       </section>
 
-{/* Footer */}
+      {/* Contact Section */}
+      <section className="py-16 px-4 sm:px-6 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Phone, title: "Emergency Hotline", desc: "+91 8299431275", color: "bg-red-500/10 text-red-600" },
+              { icon: Mail, title: "Email Support", desc: "hexagonsservices@gmail.com", color: "bg-blue-500/10 text-blue-600" },
+              { icon: MapPin, title: "Visit Us", desc: "Lucknow, India", color: "bg-emerald-500/10 text-emerald-600" }
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center gap-4 p-4 bg-card rounded-xl border border-border/60 hover:shadow-lg transition-all"
+              >
+                <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center`}>
+                  <item.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-medium text-card-foreground">{item.title}</p>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
       <footer className="bg-gradient-to-b from-background to-muted/30 border-t border-border/50 pt-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -525,7 +702,7 @@ const Home = () => {
             <div>
               <h4 className="font-heading text-lg font-semibold mb-4">Our Services</h4>
               <ul className="space-y-3">
-                {services.map((service, i) => (
+                {services.slice(0, 5).map((service, i) => (
                   <li key={service.name}>
                     <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center justify-between">
                       <span className="flex items-center gap-2"><service.icon className="w-3 h-3 text-primary" /> {service.name}</span>
