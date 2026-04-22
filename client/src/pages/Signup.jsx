@@ -21,6 +21,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [secretKey, setSecretKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,10 +38,14 @@ export default function Signup() {
       setError('Password must be at least 6 characters');
       return;
     }
+    if (role === 'admin' && secretKey !== 'medicore2580') {
+      setError('Invalid secret key for admin registration');
+      return;
+    }
     setLoading(true);
     try {
       // Register using API directly (do not set auth state yet)
-      await api.register({ name, email, password, role });
+      await api.register({ name, email, password, role, secretKey });
       // Store credentials for auto-login after OTP
       localStorage.setItem('temp_password', password);
       localStorage.setItem('temp_role', role);
@@ -121,6 +126,12 @@ export default function Signup() {
               <label className="text-sm font-medium text-foreground mb-1.5 block">Confirm Password</label>
               <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm your password" required />
             </div>
+            {role === 'admin' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Secret Key</label>
+                <Input type="password" value={secretKey} onChange={e => setSecretKey(e.target.value)} placeholder="Enter admin secret key" required />
+              </div>
+            )}
             {error && <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>}
             <Button type="submit" className="w-full gap-2" size="lg" disabled={loading}>
               {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}

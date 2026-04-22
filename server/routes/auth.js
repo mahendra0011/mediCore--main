@@ -19,7 +19,11 @@ const generateOTP = () => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, secretKey } = req.body;
+
+    if (role === 'admin' && secretKey !== 'medicore2580') {
+      return res.status(403).json({ message: 'Invalid secret key for admin registration' });
+    }
 
     if (await User.findOne({ email })) {
       return res.status(400).json({ message: 'Email already in use' });
