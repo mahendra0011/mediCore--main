@@ -149,25 +149,33 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.isVerified) {
-      // Generate and send new OTP for unverified email
-      const otp = generateOTP();
-      user.otp = otp;
-      user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      await user.save();
+      // Keep login response fast for unverified users:
+      // - reuse existing valid OTP if present
+      // - send OTP in background instead of blocking on SMTP
+      let otpToSend = user.otp;
+      const hasValidOtp = user.otp && user.otpExpires && user.otpExpires > new Date();
 
-      // Send OTP immediately so we can report delivery issues accurately.
-      const emailResult = await sendOTPEmail(email, otp);
-      if (!emailResult.success) {
-        console.error('OTP email failed during login:', emailResult.error || emailResult.message);
-        return res.status(500).json({
-          message: 'Unable to send OTP email right now. Please check SMTP settings and try again.'
-        });
+      if (!hasValidOtp) {
+        otpToSend = generateOTP();
+        user.otp = otpToSend;
+        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        await user.save();
       }
-      
+
+      sendOTPEmail(email, otpToSend)
+        .then((result) => {
+          if (!result.success) {
+            console.error('OTP email failed during login:', result.error || result.message);
+          } else {
+            console.log('OTP email sent during login:', result.messageId || 'simulated');
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to send OTP email during login:', err.message);
+        });
+
       return res.status(403).json({
-        message: emailResult.simulated
-          ? 'Please verify your email first. OTP email is running in simulated mode (SMTP not configured).'
-          : 'Please verify your email first',
+        message: 'Please verify your email first',
         requiresVerification: true,
         email: user.email
       });
