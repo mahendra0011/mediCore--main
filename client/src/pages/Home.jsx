@@ -66,9 +66,7 @@ const features = [
 
 const testimonials = [
   { name: "Sarah Johnson", role: "Patient", image: "https://i.pravatar.cc/100?img=5", content: "The care I received was exceptional. The doctors took time to explain everything and made me feel comfortable throughout my treatment.", rating: 5 },
-  { name: "Mike Chen", role: "Patient", image: "https://i.pravatar.cc/100?img=11", 
-content: "Outstanding service! The booking process was smooth and the doctor was incredibly knowledgeable. Highly 
-recommend MediCore.", rating: 5 },
+  { name: "Mike Chen", role: "Patient", image: "https://i.pravatar.cc/100?img=11", content: "Outstanding service! The booking process was smooth and the doctor was incredibly knowledgeable. Highly recommend MediCore.", rating: 5 },
   { name: "Emily Williams", role: "Patient", image: "https://i.pravatar.cc/100?img=9", content: "From scheduling to follow-up, every step was handled with professionalism. The team truly cares about patient well-being.", rating: 5 },
 ];
 
