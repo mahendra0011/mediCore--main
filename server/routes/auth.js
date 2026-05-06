@@ -44,8 +44,10 @@ router.post('/register', async (req, res) => {
       otpExpires,
     });
 
-    // Send OTP email
-    await sendOTPEmail(email, otp);
+    // Send OTP email in the background, do not wait for response
+    sendOTPEmail(email, otp).catch(err => {
+      console.error('Failed to send OTP email:', err);
+    });
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
@@ -109,8 +111,10 @@ router.post('/resend-otp', async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    // Send OTP email
-    await sendOTPEmail(email, otp);
+    // Send OTP email in the background, do not wait for response
+    sendOTPEmail(email, otp).catch(err => {
+      console.error('Failed to send OTP email:', err);
+    });
 
     res.json({ message: 'OTP resent to your email' });
   } catch (err) {
