@@ -44,11 +44,10 @@ router.post('/register', async (req, res) => {
       otpExpires,
     });
 
-    // Send OTP email and wait for result
-    const emailResult = await sendOTPEmail(email, otp);
-    if (!emailResult.success && !emailResult.simulated) {
-      console.error('Failed to send OTP email:', emailResult.error);
-    }
+    // Send OTP email in background - don't wait for response
+    sendOTPEmail(email, otp).catch(err => {
+      console.error('Failed to send OTP email:', err.message);
+    });
 
     res.status(201).json({
       message: 'Registration successful. Please verify your email with the OTP sent.',
@@ -112,8 +111,10 @@ router.post('/resend-otp', async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    // Send OTP email and get result
-    const emailResult = await sendOTPEmail(email, otp);
+    // Send OTP email in background - don't wait
+    sendOTPEmail(email, otp).catch(err => {
+      console.error('Failed to send OTP email:', err.message);
+    });
     
     res.json({ message: 'OTP resent to your email' });
   } catch (err) {
@@ -142,8 +143,10 @@ router.post('/login', async (req, res) => {
       user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
       
-      // Send OTP email and get result
-      await sendOTPEmail(email, otp);
+      // Send OTP email in background - don't wait for response
+      sendOTPEmail(email, otp).catch(err => {
+        console.error('Failed to send OTP email during login:', err.message);
+      });
       
       return res.status(403).json({
         message: 'Please verify your email first',
