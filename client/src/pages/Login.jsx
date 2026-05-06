@@ -13,9 +13,9 @@ const roles = [
 ];
 
 const demos = {
-  admin:   { email: 'admin@medicare.com',       password: 'password' },
-  doctor:  { email: 'sarah.smith@medicare.com', password: 'password' },
-  patient: { email: 'patient@medicare.com',     password: 'password' },
+  admin:   { email: 'admin@mediCore.com',       password: 'password' },
+  doctor:  { email: 'sarah.smith@mediCore.com', password: 'password' },
+  patient: { email: 'patient@mediCore.com',     password: 'password' },
 };
 
 export default function Login() {

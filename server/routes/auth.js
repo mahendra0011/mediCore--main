@@ -137,6 +137,17 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.isVerified) {
+      // Generate and send new OTP for unverified email
+      const otp = generateOTP();
+      user.otp = otp;
+      user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await user.save();
+      
+      // Send OTP email in the background, do not wait for response
+      sendOTPEmail(email, otp).catch(err => {
+        console.error('Failed to send OTP email during login:', err);
+      });
+      
       return res.status(403).json({
         message: 'Please verify your email first',
         requiresVerification: true,
