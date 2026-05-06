@@ -50,10 +50,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const completeOtpLogin = ({ token, user }) => {
+    localStorage.removeItem('token');
+    localStorage.setItem('hms_token', token);
+    setUser(user);
+  };
+
   const updateUser = (updates) => setUser(u => ({ ...u, ...updates }));
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser, completeOtpLogin }}>
       {children}
     </AuthContext.Provider>
   );

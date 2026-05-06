@@ -74,23 +74,20 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'Email already verified' });
-    }
-
     if (user.otp !== otp || user.otpExpires < new Date()) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
-    // Mark user as verified
+    // Mark email verified (if first-time verification) and consume OTP
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
 
     res.json({
-      message: 'Email verified successfully',
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: true }
+      message: 'OTP verified successfully',
+      token: sign(user),
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isVerified: true }
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -148,10 +145,8 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ message: `This account is not a ${role}` });
     }
 
+    // Require OTP only until email is verified once.
     if (!user.isVerified) {
-      // Keep login response fast for unverified users:
-      // - reuse existing valid OTP if present
-      // - send OTP in background instead of blocking on SMTP
       let otpToSend = user.otp;
       const hasValidOtp = user.otp && user.otpExpires && user.otpExpires > new Date();
 
@@ -181,7 +176,10 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    res.json({ token: sign(user), user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isVerified: user.isVerified } });
+    return res.json({
+      token: sign(user),
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isVerified: user.isVerified }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

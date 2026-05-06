@@ -11,7 +11,7 @@ export default function OTPVerification() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
-  const { user, login } = useAuth();
+  const { user, completeOtpLogin } = useAuth();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -71,22 +71,15 @@ export default function OTPVerification() {
     setError('');
     try {
       // Verify OTP on backend
-      await api.verifyOTP({ email, otp: otpValue });
-
-      // Auto-login after verification
-      const tempPassword = localStorage.getItem('temp_password');
-      const tempRole = localStorage.getItem('temp_role');
-
-      if (tempPassword && tempRole) {
-        await login(email, tempPassword, tempRole);
-        // Clean up temp storage
-        localStorage.removeItem('temp_password');
-        localStorage.removeItem('temp_role');
-        navigate('/dashboard');
-      } else {
-        // If no temp credentials, go to login page
-        navigate('/login');
+      const data = await api.verifyOTP({ email, otp: otpValue });
+      if (data?.token && data?.user) {
+        completeOtpLogin({ token: data.token, user: data.user });
       }
+
+      // Clean up temp login data from previous flow
+      localStorage.removeItem('temp_password');
+      localStorage.removeItem('temp_role');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid OTP. Please try again.');
     } finally {
