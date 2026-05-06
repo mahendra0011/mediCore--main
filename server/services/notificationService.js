@@ -17,10 +17,13 @@ const getTransporter = () => {
     from: process.env.SMTP_FROM
   });
 
+  const port = parseInt(process.env.SMTP_PORT, 10) || 587;
+  const secure = port === 465;
+
   transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
+    port,
+    secure,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -48,7 +51,8 @@ export const sendEmail = async ({ to, subject, text, html, attachments }) => {
 
   try {
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'MediCore Hospital <noreply@medicorehospital.com>',
+      // Defaulting to SMTP user avoids domain mismatch rejections by many providers.
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
       subject,
       text,

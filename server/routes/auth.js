@@ -154,20 +154,20 @@ router.post('/login', async (req, res) => {
       user.otp = otp;
       user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
-      
-      // Send OTP email in background - don't wait for response
-      sendOTPEmail(email, otp).then(result => {
-        if (!result.success) {
-          console.error('OTP email failed during login:', result.error || result.message);
-        } else {
-          console.log('OTP email sent during login:', result.messageId || 'simulated');
-        }
-      }).catch(err => {
-        console.error('Failed to send OTP email during login:', err.message);
-      });
+
+      // Send OTP immediately so we can report delivery issues accurately.
+      const emailResult = await sendOTPEmail(email, otp);
+      if (!emailResult.success) {
+        console.error('OTP email failed during login:', emailResult.error || emailResult.message);
+        return res.status(500).json({
+          message: 'Unable to send OTP email right now. Please check SMTP settings and try again.'
+        });
+      }
       
       return res.status(403).json({
-        message: 'Please verify your email first',
+        message: emailResult.simulated
+          ? 'Please verify your email first. OTP email is running in simulated mode (SMTP not configured).'
+          : 'Please verify your email first',
         requiresVerification: true,
         email: user.email
       });
