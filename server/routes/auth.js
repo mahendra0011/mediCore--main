@@ -45,7 +45,13 @@ router.post('/register', async (req, res) => {
     });
 
     // Send OTP email in background - don't wait for response
-    sendOTPEmail(email, otp).catch(err => {
+    sendOTPEmail(email, otp).then(result => {
+      if (!result.success) {
+        console.error('OTP email failed:', result.error || result.message);
+      } else {
+        console.log('OTP email sent successfully:', result.messageId || 'simulated');
+      }
+    }).catch(err => {
       console.error('Failed to send OTP email:', err.message);
     });
 
@@ -112,7 +118,13 @@ router.post('/resend-otp', async (req, res) => {
     await user.save();
 
     // Send OTP email in background - don't wait
-    sendOTPEmail(email, otp).catch(err => {
+    sendOTPEmail(email, otp).then(result => {
+      if (!result.success) {
+        console.error('OTP email failed:', result.error || result.message);
+      } else {
+        console.log('OTP email sent successfully:', result.messageId || 'simulated');
+      }
+    }).catch(err => {
       console.error('Failed to send OTP email:', err.message);
     });
     
@@ -144,7 +156,13 @@ router.post('/login', async (req, res) => {
       await user.save();
       
       // Send OTP email in background - don't wait for response
-      sendOTPEmail(email, otp).catch(err => {
+      sendOTPEmail(email, otp).then(result => {
+        if (!result.success) {
+          console.error('OTP email failed during login:', result.error || result.message);
+        } else {
+          console.log('OTP email sent during login:', result.messageId || 'simulated');
+        }
+      }).catch(err => {
         console.error('Failed to send OTP email during login:', err.message);
       });
       

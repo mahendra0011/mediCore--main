@@ -10,14 +10,29 @@ const getTransporter = () => {
     return null;
   }
   
-  transporter = nodemailer.createTransport({
+  console.log('🔧 Creating SMTP transporter with:', {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: process.env.SMTP_PORT || 587,
+    user: process.env.SMTP_USER,
+    from: process.env.SMTP_FROM
+  });
+
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
     secure: false,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+  });
+  
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('❌ SMTP connection failed:', error.message);
+    } else {
+      console.log('✅ SMTP connection successful');
+    }
   });
   
   return transporter;
@@ -30,10 +45,10 @@ export const sendEmail = async ({ to, subject, text, html, attachments }) => {
     console.log(`📧 Email (simulated): ${to} - ${subject}`);
     return { success: true, simulated: true, message: 'Email simulated (SMTP not configured)' };
   }
-  
+
   try {
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"MediCore Hospital" <noreply@medicorehospital.com>',
+      from: process.env.SMTP_FROM || 'MediCore Hospital <noreply@medicorehospital.com>',
       to,
       subject,
       text,
@@ -46,6 +61,7 @@ export const sendEmail = async ({ to, subject, text, html, attachments }) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('❌ Email send error:', error.message);
+    console.error('❌ Error details:', error);
     return { success: false, error: error.message };
   }
 };

@@ -25,6 +25,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/medicore';
 
+console.log('🔍 Environment check:', {
+  SMTP_USER: process.env.SMTP_USER ? 'set' : 'NOT SET',
+  SMTP_PASS: process.env.SMTP_PASS ? 'set' : 'NOT SET',
+  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_PORT: process.env.SMTP_PORT || 587
+});
+
 // Middleware
 app.use(cors({ 
   origin: true,
