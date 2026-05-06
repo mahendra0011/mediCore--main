@@ -66,7 +66,9 @@ const features = [
 
 const testimonials = [
   { name: "Sarah Johnson", role: "Patient", image: "https://i.pravatar.cc/100?img=5", content: "The care I received was exceptional. The doctors took time to explain everything and made me feel comfortable throughout my treatment.", rating: 5 },
-  { name: "Mike Chen", role: "Patient", image: "https://i.pravatar.cc/100?img=11", content: "Outstanding service! The booking process was smooth and the doctor was incredibly knowledgeable. Highly recommend MediCare.", rating: 5 },
+  { name: "Mike Chen", role: "Patient", image: "https://i.pravatar.cc/100?img=11", 
+content: "Outstanding service! The booking process was smooth and the doctor was incredibly knowledgeable. Highly 
+recommend MediCore.", rating: 5 },
   { name: "Emily Williams", role: "Patient", image: "https://i.pravatar.cc/100?img=9", content: "From scheduling to follow-up, every step was handled with professionalism. The team truly cares about patient well-being.", rating: 5 },
 ];
 
@@ -161,7 +163,7 @@ const Home = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
                 <Activity className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-heading text-xl font-bold">MediCare</span>
+              <span className="font-heading text-xl font-bold">MediCore</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href="#specialties" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Specialties</a>
@@ -194,7 +196,7 @@ const Home = () => {
               </motion.div>
 
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground leading-[1.1] tracking-tight">
-                MediCare
+                 MediCore
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-violet-500">
                   Healthcare Solutions
                 </span>
@@ -240,7 +242,7 @@ const Home = () => {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <img 
                   src={heroImage} 
-                  alt="MediCare Healthcare" 
+                  alt="MediCore Healthcare" 
                   className="w-full h-[400px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -396,7 +398,7 @@ const Home = () => {
               <Zap className="w-4 h-4" />
               Why Choose Us
             </div>
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">The MediCare Difference</h2>
+            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">The MediCore Difference</h2>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
               We combine cutting-edge technology with compassionate care to deliver an exceptional healthcare experience
             </p>
@@ -554,7 +556,8 @@ const Home = () => {
               Testimonials
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground">What Our Patients Say</h2>
-            <p className="text-muted-foreground mt-3">Real stories from real patients about their experience with MediCare</p>
+<p className="text-muted-foreground mt-3">Real stories from real patients 
+about their experience with MediCore</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -668,7 +671,7 @@ const Home = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                   <Activity className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <span className="font-heading text-2xl font-bold">MediCare</span>
+                <span className="font-heading text-2xl font-bold">MediCore</span>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                 Your trusted partner in healthcare innovation. We're committed to providing exceptional medical care with cutting-edge technology and compassionate service.
@@ -752,7 +755,7 @@ const Home = () => {
           {/* Bottom Footer */}
           <div className="border-t border-border/50 mt-12 pt-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">© 2026 MediCare Healthcare. All rights reserved.</p>
+              <p className="text-sm text-muted-foreground">© 2026 MediCore Healthcare. All rights reserved.</p>
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
