@@ -439,11 +439,11 @@ This populates the database with sample users, doctors, patients, appointments, 
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@medicare.com | password |
-| Doctor | sarah.smith@medicare.com | password |
-| Doctor | raj.patel@medicare.com | password |
+| Admin | admin@mediCore.com | password |
+| Doctor | sarah.smith@mediCore.com | password |
+| Doctor | raj.patel@mediCore.com | password |
 | Patient | sarah.johnson@email.com | password |
-| Patient | patient@medicare.com | password |
+| Patient | patient@mediCore.com | password |
 
 ---
 

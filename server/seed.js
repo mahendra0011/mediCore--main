@@ -27,26 +27,26 @@ async function seed() {
   ]);
 
   // Create Users first
-  const adminUser = await User.create({ name: 'Admin User', email: 'admin@medicare.com', password: await hash('password'), role: 'admin' });
-  const doctorUser1 = await User.create({ name: 'Dr. Sarah Smith', email: 'sarah.smith@medicare.com', password: await hash('password'), role: 'doctor', specialization: 'Cardiology' });
-  const doctorUser2 = await User.create({ name: 'Dr. Raj Patel', email: 'raj.patel@medicare.com', password: await hash('password'), role: 'doctor', specialization: 'Neurology' });
-  const doctorUser3 = await User.create({ name: 'Dr. Emily Lee', email: 'emily.lee@medicare.com', password: await hash('password'), role: 'doctor', specialization: 'Orthopedics' });
-  const doctorUser4 = await User.create({ name: 'Dr. Carlos Garcia', email: 'carlos.garcia@medicare.com', password: await hash('password'), role: 'doctor', specialization: 'Pediatrics' });
+  const adminUser = await User.create({ name: 'Admin User', email: 'admin@mediCore.com', password: await hash('password'), role: 'admin' });
+  const doctorUser1 = await User.create({ name: 'Dr. Sarah Smith', email: 'sarah.smith@mediCore.com', password: await hash('password'), role: 'doctor', specialization: 'Cardiology' });
+  const doctorUser2 = await User.create({ name: 'Dr. Raj Patel', email: 'raj.patel@mediCore.com', password: await hash('password'), role: 'doctor', specialization: 'Neurology' });
+  const doctorUser3 = await User.create({ name: 'Dr. Emily Lee', email: 'emily.lee@mediCore.com', password: await hash('password'), role: 'doctor', specialization: 'Orthopedics' });
+  const doctorUser4 = await User.create({ name: 'Dr. Carlos Garcia', email: 'carlos.garcia@mediCore.com', password: await hash('password'), role: 'doctor', specialization: 'Pediatrics' });
   
   const patientUser1 = await User.create({ name: 'Sarah Johnson', email: 'sarah.johnson@email.com', password: await hash('password'), role: 'patient', phone: '+1 555-0101' });
   const patientUser2 = await User.create({ name: 'Mike Chen', email: 'mike.chen@email.com', password: await hash('password'), role: 'patient', phone: '+1 555-0102' });
   const patientUser3 = await User.create({ name: 'Emma Wilson', email: 'emma.wilson@email.com', password: await hash('password'), role: 'patient', phone: '+1 555-0103' });
   const patientUser4 = await User.create({ name: 'James Brown', email: 'james.brown@email.com', password: await hash('password'), role: 'patient', phone: '+1 555-0104' });
-  const patientUser5 = await User.create({ name: 'John Patient', email: 'patient@medicare.com', password: await hash('password'), role: 'patient', phone: '+1 555-0100' });
+  const patientUser5 = await User.create({ name: 'John Patient', email: 'patient@mediCore.com', password: await hash('password'), role: 'patient', phone: '+1 555-0100' });
 
   console.log('Created users...');
 
   // Create Doctors with user_id references
   const doctors = await Doctor.insertMany([
-    { name: 'Dr. Sarah Smith', specialization: 'Cardiology', experience: '12 years', rating: 4.8, patients: 1250, available: true, phone: '+1 234-567-8901', email: 'sarah.smith@medicare.com', initials: 'SS', department: 'Cardiology', fees: 500, consultation_fees: 500, location: 'New York, NY', qualifications: 'MBBS, MD Cardiology', bio: 'Expert cardiologist with 12 years of experience.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: false, sunday: false }, leaves: [], approved: true, user_id: doctorUser1._id.toString(), reviews_count: 3 },
-    { name: 'Dr. Raj Patel', specialization: 'Neurology', experience: '8 years', rating: 4.9, patients: 890, available: true, phone: '+1 234-567-8902', email: 'raj.patel@medicare.com', initials: 'RP', department: 'Neurology', fees: 600, consultation_fees: 600, location: 'Los Angeles, CA', qualifications: 'MBBS, DM Neurology', bio: 'Specialized in neurological disorders.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: true, sunday: false }, leaves: [], approved: true, user_id: doctorUser2._id.toString(), reviews_count: 2 },
-    { name: 'Dr. Emily Lee', specialization: 'Orthopedics', experience: '15 years', rating: 4.7, patients: 2100, available: true, phone: '+1 234-567-8903', email: 'emily.lee@medicare.com', initials: 'EL', department: 'Orthopedics', fees: 450, consultation_fees: 450, location: 'Chicago, IL', qualifications: 'MBBS, MS Orthopedics', bio: 'Bone and joint specialist.', time_slots: ['10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: false, saturday: false, sunday: false }, leaves: [], approved: true, user_id: doctorUser3._id.toString(), reviews_count: 0 },
-    { name: 'Dr. Carlos Garcia', specialization: 'Pediatrics', experience: '10 years', rating: 4.6, patients: 1800, available: true, phone: '+1 234-567-8904', email: 'carlos.garcia@medicare.com', initials: 'CG', department: 'Pediatrics', fees: 350, consultation_fees: 350, location: 'Houston, TX', qualifications: 'MBBS, DCH Pediatrics', bio: 'Dedicated pediatrician.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: true, sunday: false }, leaves: [], approved: true, user_id: doctorUser4._id.toString(), reviews_count: 1 },
+    { name: 'Dr. Sarah Smith', specialization: 'Cardiology', experience: '12 years', rating: 4.8, patients: 1250, available: true, phone: '+1 234-567-8901', email: 'sarah.smith@mediCore.com', initials: 'SS', department: 'Cardiology', fees: 500, consultation_fees: 500, location: 'New York, NY', qualifications: 'MBBS, MD Cardiology', bio: 'Expert cardiologist with 12 years of experience.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: false, sunday: false }, leaves: [], approved: true, user_id: doctorUser1._id.toString(), reviews_count: 3 },
+    { name: 'Dr. Raj Patel', specialization: 'Neurology', experience: '8 years', rating: 4.9, patients: 890, available: true, phone: '+1 234-567-8902', email: 'raj.patel@mediCore.com', initials: 'RP', department: 'Neurology', fees: 600, consultation_fees: 600, location: 'Los Angeles, CA', qualifications: 'MBBS, DM Neurology', bio: 'Specialized in neurological disorders.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: true, sunday: false }, leaves: [], approved: true, user_id: doctorUser2._id.toString(), reviews_count: 2 },
+    { name: 'Dr. Emily Lee', specialization: 'Orthopedics', experience: '15 years', rating: 4.7, patients: 2100, available: true, phone: '+1 234-567-8903', email: 'emily.lee@mediCore.com', initials: 'EL', department: 'Orthopedics', fees: 450, consultation_fees: 450, location: 'Chicago, IL', qualifications: 'MBBS, MS Orthopedics', bio: 'Bone and joint specialist.', time_slots: ['10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: false, saturday: false, sunday: false }, leaves: [], approved: true, user_id: doctorUser3._id.toString(), reviews_count: 0 },
+    { name: 'Dr. Carlos Garcia', specialization: 'Pediatrics', experience: '10 years', rating: 4.6, patients: 1800, available: true, phone: '+1 234-567-8904', email: 'carlos.garcia@mediCore.com', initials: 'CG', department: 'Pediatrics', fees: 350, consultation_fees: 350, location: 'Houston, TX', qualifications: 'MBBS, DCH Pediatrics', bio: 'Dedicated pediatrician.', time_slots: ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'], weekly_schedule: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: true, sunday: false }, leaves: [], approved: true, user_id: doctorUser4._id.toString(), reviews_count: 1 },
   ]);
 
   console.log('Created doctors...');
@@ -57,7 +57,7 @@ async function seed() {
     { name: 'Mike Chen', age: 45, gender: 'Male', disease: 'Diabetes Type 2', doctor: 'Dr. Raj Patel', phone: '+1 555-0102', email: 'mike.chen@email.com', bloodGroup: 'O-', admitted: new Date('2024-03-12'), status: 'Active', userId: patientUser2._id },
     { name: 'Emma Wilson', age: 28, gender: 'Female', disease: 'Asthma', doctor: 'Dr. Emily Lee', phone: '+1 555-0103', email: 'emma.wilson@email.com', bloodGroup: 'B+', admitted: new Date('2024-03-10'), status: 'Discharged', userId: patientUser3._id },
     { name: 'James Brown', age: 62, gender: 'Male', disease: 'Heart Disease', doctor: 'Dr. Sarah Smith', phone: '+1 555-0104', email: 'james.brown@email.com', bloodGroup: 'AB+', admitted: new Date('2024-03-08'), status: 'Active', userId: patientUser4._id },
-    { name: 'John Patient', age: 30, gender: 'Male', disease: 'General Checkup', doctor: 'Dr. Carlos Garcia', phone: '+1 555-0100', email: 'patient@medicare.com', bloodGroup: 'O+', admitted: new Date(), status: 'Active', userId: patientUser5._id },
+    { name: 'John Patient', age: 30, gender: 'Male', disease: 'General Checkup', doctor: 'Dr. Carlos Garcia', phone: '+1 555-0100', email: 'patient@mediCore.com', bloodGroup: 'O+', admitted: new Date(), status: 'Active', userId: patientUser5._id },
   ]);
 
   console.log('Created patients...');
@@ -117,12 +117,12 @@ async function seed() {
 
   console.log('\n✅ Seed complete!');
   console.log('\n📋 Login Credentials:');
-  console.log('  Admin:    admin@medicare.com    / password');
-  console.log('  Doctor:   sarah.smith@medicare.com / password');
-  console.log('  Doctor:   raj.patel@medicare.com   / password');
+  console.log('  Admin:    admin@mediCore.com    / password');
+  console.log('  Doctor:   sarah.smith@mediCore.com / password');
+  console.log('  Doctor:   raj.patel@mediCore.com   / password');
   console.log('  Patient:  sarah.johnson@email.com   / password');
   console.log('  Patient:  mike.chen@email.com      / password');
-  console.log('  Patient:  patient@medicare.com     / password');
+  console.log('  Patient:  patient@mediCore.com     / password');
   
   process.exit(0);
 }
