@@ -1,8 +1,6 @@
 import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
 
 let transporter = null;
-let sendgridInitialized = false;
 
 const getTransporter = () => {
   if (transporter) return transporter;
@@ -25,55 +23,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-const getSendGridClient = () => {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  if (!apiKey) {
-    console.warn('⚠️ SendGrid API key not configured.');
-    return null;
-  }
-  
-  if (!sendgridInitialized) {
-    sgMail.setApiKey(apiKey);
-    sendgridInitialized = true;
-  }
-  return sgMail;
-};
-
-const sendWithSendGrid = async ({ to, subject, text, html, attachments }) => {
-  const client = getSendGridClient();
-  if (!client) return { success: false, error: 'SendGrid not configured' };
-  
-  try {
-    const msg = {
-      to,
-      from: process.env.SMTP_FROM || 'noreply@medicorehospital.com',
-      subject,
-      text,
-      html,
-      attachments: attachments?.map(a => ({
-        content: a.content.toString('base64'),
-        filename: a.filename,
-        type: a.contentType || 'application/octet-stream',
-      })),
-    };
-    
-    const result = await sgMail.send(msg);
-    console.log(`✅ SendGrid email sent: ${result[0]?.statusCode}`);
-    return { success: true };
-  } catch (error) {
-    console.error('❌ SendGrid error:', error.message);
-    return { success: false, error: error.message };
-  }
-};
-
 export const sendEmail = async ({ to, subject, text, html, attachments }) => {
-  // Try SendGrid first if configured
-  if (process.env.SENDGRID_API_KEY) {
-    const result = await sendWithSendGrid({ to, subject, text, html, attachments });
-    if (result.success) return result;
-    console.warn('SendGrid failed, falling back to SMTP');
-  }
-  
   const transporter = getTransporter();
   
   if (!transporter) {
