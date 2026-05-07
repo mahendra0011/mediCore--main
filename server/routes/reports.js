@@ -10,11 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { 
   sendAppointmentReminder, 
-  sendOTPEmail, 
   sendPrescriptionEmail, 
   sendLabResultAlert,
-  sendAppointmentReminderSMS,
-  sendOTPSMS 
+  sendAppointmentReminderSMS
 } from '../services/notificationService.js';
 import { processMedicalFile, validateFile } from '../utils/imageUtils.js';
 import { 
@@ -190,16 +188,6 @@ router.post('/email/appointment-reminder', async (req, res) => {
   }
 });
 
-router.post('/email/otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const result = await sendOTPEmail(email, otp);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 router.post('/email/prescription', async (req, res) => {
   try {
     const { patient, prescription } = req.body;
@@ -225,16 +213,6 @@ router.post('/sms/appointment-reminder', async (req, res) => {
   try {
     const { phone, patientName, doctorName, date, time } = req.body;
     const result = await sendAppointmentReminderSMS(phone, patientName, doctorName, date, time);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post('/sms/otp', async (req, res) => {
-  try {
-    const { phone, otp } = req.body;
-    const result = await sendOTPSMS(phone, otp);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

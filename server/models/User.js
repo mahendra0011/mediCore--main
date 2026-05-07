@@ -10,8 +10,6 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, default: '' },
   specialization: { type: String, default: '' }, // for doctors
   isVerified: { type: Boolean, default: false, index: true },
-  otp: { type: String },
-  otpExpires: { type: Date, index: true },
   createdAt: { type: Date, default: Date.now, index: true },
 });
 

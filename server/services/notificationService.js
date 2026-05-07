@@ -104,25 +104,6 @@ export const sendAppointmentReminder = async (appointment) => {
   return sendEmail({ to: patient.email, subject, text, html });
 };
 
-export const sendOTPEmail = async (email, otp) => {
-  const subject = 'Your OTP Verification - MediCore Hospital';
-  const text = `Your OTP for verification is: ${otp}. This OTP will expire in 10 minutes.`;
-  
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2>OTP Verification</h2>
-      <p>Your One-Time Password (OTP) is:</p>
-      <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; padding: 20px; background: #f5f5f5; text-align: center;">
-        ${otp}
-      </div>
-      <p>This OTP will expire in <strong>10 minutes</strong>.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    </div>
-  `;
-  
-  return sendEmail({ to: email, subject, text, html });
-};
-
 export const sendPrescriptionEmail = async (patient, prescription, pdfBuffer) => {
   const subject = 'Your Prescription - MediCore Hospital';
   const text = `Dear ${patient.name},\n\nPlease find attached your prescription from Dr. ${prescription.doctorName}.\n\nThank you,\nMediCore Hospital`;
@@ -176,7 +157,3 @@ export const sendAppointmentReminderSMS = async (phone, patientName, doctorName,
   return sendSMS(phone, message);
 };
 
-export const sendOTPSMS = async (phone, otp) => {
-  const message = `Your MediCore OTP is: ${otp}. Valid for 10 minutes.`;
-  return sendSMS(phone, message);
-};
