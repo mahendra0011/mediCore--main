@@ -32,12 +32,13 @@ const getTransporter = () => {
   
   transporter.verify((error, success) => {
     if (error) {
-      console.error('❌ SMTP connection failed:', error.message);
+      console.error('❌ SMTP verification error:', error.message);
+      console.error('❌ SMTP error code:', error.code);
     } else {
-      console.log('✅ SMTP connection successful');
+      console.log('✅ SMTP connection verified');
     }
   });
-  
+
   return transporter;
 };
 

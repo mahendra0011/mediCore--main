@@ -1,0 +1,23 @@
+🔍 Environment check: {
+  SMTP_USER: 'set',
+  SMTP_PASS: 'set',
+  SMTP_HOST: 'smtp.gmail.com',
+  SMTP_PORT: '587'
+}
+✅ MongoDB connected
+🚀 Server running on http://localhost:5000
+🔧 Creating SMTP transporter with: {
+  host: 'smtp.gmail.com',
+  port: '587',
+  user: 'sourceforget32@gmail.com',
+  from: 'MediCore Hospital <sourceforget32@gmail.com>'
+}
+✅ SMTP connection verified
+✅ Email sent: <44b92a2d-7d8f-e570-4a57-a2fa3204207d@gmail.com>
+OTP email sent successfully: <44b92a2d-7d8f-e570-4a57-a2fa3204207d@gmail.com>
+✅ Email sent: <5bc32767-2701-4db9-fdee-17057fb135f3@gmail.com>
+OTP email sent successfully: <5bc32767-2701-4db9-fdee-17057fb135f3@gmail.com>
+✅ Email sent: <99fef0ad-317b-b22b-fa39-b73210a18ca9@gmail.com>
+OTP email sent successfully: <99fef0ad-317b-b22b-fa39-b73210a18ca9@gmail.com>
+✅ Email sent: <cfca154f-661b-fb86-ef04-b57a18c09d62@gmail.com>
+OTP email sent during login: <cfca154f-661b-fb86-ef04-b57a18c09d62@gmail.com>
